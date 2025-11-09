@@ -35,6 +35,11 @@ def get_protein_structure(protein_name: str, organism: str = "human") -> dict:
             f"https://alphafold.ebi.ac.uk/files/AF-{uniprot_id}-F1-model_v4.pdb",
             f"https://alphafold.ebi.ac.uk/files/AF-{uniprot_id}-F1-model_v3.pdb",
             f"https://alphafold.ebi.ac.uk/files/AF-{uniprot_id}-F1-model_v2.pdb",
+            f"https://alphafold.ebi.ac.uk/files/AF-{uniprot_id}-F1-model_v4.cif",
+            f"https://alphafold.ebi.ac.uk/files/AF-{uniprot_id}-F1-model_v3.cif",
+            f"https://alphafold.ebi.ac.uk/files/AF-{uniprot_id}-F1-model_v2.cif",
+            f"https://alphafold.ebi.ac.uk/files/AF-{uniprot_id}-F1-model_v6.pdb",
+            f"https://alphafold.ebi.ac.uk/files/AF-{uniprot_id}-F1-model_v6.cif",
         ]
         
         pdb_data = None

@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 # Common protein names and their UniProt IDs
 PROTEIN_DATABASE = {
-    "p53": {"uniprot": "P04637", "organism": "human", "full_name": "TP53"},
+    "p53": {"uniprot": "P04637-4", "organism": "human", "full_name": "TP53"},
     "tp53": {"uniprot": "P04637", "organism": "human", "full_name": "TP53"},
     "spike": {"uniprot": "P0DTC2", "organism": "SARS-CoV-2", "full_name": "Spike protein"},
     "hemoglobin": {"uniprot": "P69905", "organism": "human", "full_name": "Hemoglobin subunit alpha"},
