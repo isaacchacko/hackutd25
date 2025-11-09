@@ -1,6 +1,6 @@
 # Railway Deployment Guide
 
-This guide will help you deploy FoldPilot AI to Railway while maintaining the ability to run locally.
+This guide will help you deploy FoldForge AI to Railway while maintaining the ability to run locally.
 
 ## Architecture
 
@@ -56,13 +56,13 @@ Set these in Railway dashboard (Settings → Variables):
 NEXT_PUBLIC_API_URL=<your-backend-railway-url>
 ```
 
-**Important**: Use the Railway-generated URL for your backend service (e.g., `https://foldpilot-backend-production.up.railway.app`)
+**Important**: Use the Railway-generated URL for your backend service (e.g., `https://foldforge-backend-production.up.railway.app`)
 
 ### 4. Configure Service Communication
 
 After both services are deployed:
 
-1. **Get Backend URL**: Copy the Railway URL from your backend service (e.g., `https://foldpilot-backend-production.up.railway.app`)
+1. **Get Backend URL**: Copy the Railway URL from your backend service (e.g., `https://foldforge-backend-production.up.railway.app`)
 2. **Update Frontend**: Set `NEXT_PUBLIC_API_URL` in frontend service to the backend URL
 3. **Get Frontend URL**: Copy the Railway URL from your frontend service
 4. **Update Backend CORS**: Set `FRONTEND_URL` in backend service to the frontend URL

@@ -17,7 +17,7 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="FoldPilot AI API", version="1.0.0")
+app = FastAPI(title="FoldForge AI API", version="1.0.0")
 
 # CORS - allow Next.js to connect (both local and remote)
 # Get allowed origins from environment variable or use defaults
@@ -118,7 +118,7 @@ class AnalysisResponse(BaseModel):
 @app.get("/")
 def root():
     return {
-        "status": "FoldPilot API is running",
+        "status": "FoldForge API is running",
         "version": "1.0.0",
         "endpoints": ["/api/analyze", "/api/analyze/stream", "/api/structure/{uniprot_id}", "/health"],
         "cors_origins": allowed_origins
@@ -128,7 +128,7 @@ def root():
 def api_root():
     """API root endpoint for testing connectivity"""
     return {
-        "message": "FoldPilot API is accessible",
+        "message": "FoldForge API is accessible",
         "available_endpoints": {
             "analyze": "/api/analyze",
             "analyze_stream": "/api/analyze/stream",

@@ -22,7 +22,7 @@ const stackSans = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'FoldPilot AI - Protein Analysis Platform',
+  title: 'FoldForge AI - Protein Analysis Platform',
   description: 'AI-powered protein structure analysis and drug discovery platform',
 };
 

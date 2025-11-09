@@ -110,7 +110,7 @@ function SearchContent() {
               <div>
                 <Link href="/">
                   <h1 className="text-6xl font-bold text-black hover:opacity-80 transition-opacity cursor-pointer mb-1" style={{ fontFamily: 'var(--font-instrument-serif)' }}>
-                    FoldPilot AI
+                    FoldForge AI
                   </h1>
                 </Link>
                 <p className="text-xl text-black/70" style={{ fontFamily: 'var(--font-instrument-serif)' }}>

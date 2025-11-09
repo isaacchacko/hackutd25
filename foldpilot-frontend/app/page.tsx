@@ -43,7 +43,7 @@ export default function Home() {
               className="text-7xl md:text-8xl font-bold text-black leading-tight"
               style={{ fontFamily: 'var(--font-instrument-serif)' }}
             >
-              FoldPilot AI
+              FoldForge AI
             </h1>
           </div>
           <p

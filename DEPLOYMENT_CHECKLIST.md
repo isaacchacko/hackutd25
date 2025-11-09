@@ -17,7 +17,7 @@ Use this checklist when deploying to Railway.
   - [ ] `FRONTEND_URL=<will-set-after-frontend-deployment>`
   - [ ] `NVIDIA_API_KEY=<your-key>`
 - [ ] Wait for deployment to complete
-- [ ] Copy the Railway URL (e.g., `https://foldpilot-backend-production.up.railway.app`)
+- [ ] Copy the Railway URL (e.g., `https://foldforge-backend-production.up.railway.app`)
 - [ ] Test health endpoint: `https://your-backend-url/health`
 
 ## Frontend Service Setup
@@ -26,7 +26,7 @@ Use this checklist when deploying to Railway.
 - [ ] Set environment variables:
   - [ ] `NEXT_PUBLIC_API_URL=<backend-railway-url>`
 - [ ] Wait for deployment to complete
-- [ ] Copy the Railway URL (e.g., `https://foldpilot-frontend-production.up.railway.app`)
+- [ ] Copy the Railway URL (e.g., `https://foldforge-frontend-production.up.railway.app`)
 
 ## Post-Deployment Configuration
 
