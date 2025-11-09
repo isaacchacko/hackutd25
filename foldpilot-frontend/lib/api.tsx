@@ -15,7 +15,14 @@ const apiClient = axios.create({
 export interface ProgressUpdate {
   step: string;
   message: string;
+  tools?: string[];
+  api?: string;
   data?: any;
+}
+
+export interface WorkflowMetadata {
+  steps: string[];
+  include_binding: boolean;
 }
 
 /**
@@ -84,11 +91,22 @@ export const analyzeProteinStreaming = async (
                   return;
                 }
                 
+                // Workflow metadata
+                if (data.workflow && onProgress) {
+                  onProgress({
+                    step: 'workflow',
+                    message: '',
+                    data: data.workflow,
+                  });
+                }
+                
                 // Progress update
                 if (data.step && onProgress) {
                   onProgress({
                     step: data.step,
                     message: data.message,
+                    tools: data.tools,
+                    api: data.api,
                   });
                 }
               } catch (error) {

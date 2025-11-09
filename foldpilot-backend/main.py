@@ -229,13 +229,25 @@ async def analyze_protein_stream(request: AnalysisRequest):
             except ImportError:
                 warnings.append("Binding site analysis not available")
             
-            # Helper to send progress
-            def send_progress(step: str, message: str):
-                data = json.dumps({"step": step, "message": message})
-                return f"data: {data}\n\n"
+            # Helper to send progress with tool metadata
+            def send_progress(step: str, message: str, tools: list = None, api: str = None):
+                data = {
+                    "step": step,
+                    "message": message,
+                }
+                if tools:
+                    data["tools"] = tools
+                if api:
+                    data["api"] = api
+                return f"data: {json.dumps(data)}\n\n"
             
             # Step 1: Planning
-            yield send_progress("planning", "Understanding your query...")
+            yield send_progress(
+                "planning", 
+                "Understanding your query...",
+                tools=["NVIDIA Nemotron LLM", "Entity Extraction"],
+                api="Nemotron API"
+            )
             await asyncio.sleep(0.1)
             
             entities = extract_entities(request.query)
@@ -247,10 +259,33 @@ async def analyze_protein_stream(request: AnalysisRequest):
                 yield f"data: {json.dumps({'error': 'Could not identify protein'})}\n\n"
                 return
             
-            yield send_progress("planning", f"Identified protein: {entities['protein']}")
+            # Determine if binding sites should be analyzed
+            should_analyze_binding = entities.get("should_analyze_binding_sites", False)
+            
+            # Build workflow plan
+            workflow_steps = ["planning", "structure"]
+            if should_analyze_binding:
+                workflow_steps.append("binding")
+            workflow_steps.extend(["literature", "synthesis"])
+            
+            yield send_progress(
+                "planning", 
+                f"Identified protein: {entities['protein']}" + 
+                (f" - {'Will analyze binding sites' if should_analyze_binding else 'Skipping binding analysis (not relevant to query)'}"),
+                tools=["NVIDIA Nemotron LLM", "UniProt Database"],
+                api="Nemotron API + UniProt REST"
+            )
+            
+            # Send workflow metadata
+            yield f"data: {json.dumps({'workflow': {'steps': workflow_steps, 'include_binding': should_analyze_binding}})}\n\n"
             
             # Step 2: Structure
-            yield send_progress("structure", "Fetching protein structure from AlphaFold...")
+            yield send_progress(
+                "structure", 
+                "Fetching protein structure from AlphaFold...",
+                tools=["UniProt API", "AlphaFold Database"],
+                api="UniProt REST + AlphaFold EBI"
+            )
             await asyncio.sleep(0.1)
             
             structure_data = get_protein_structure(
@@ -262,12 +297,23 @@ async def analyze_protein_stream(request: AnalysisRequest):
                 warnings.append("Structure retrieval failed")
                 structure_data = {"uniprot_id": "Unknown", "structure": None, "quality": None}
             
-            yield send_progress("structure", f"Structure retrieved (UniProt: {structure_data.get('uniprot_id')})")
+            source = structure_data.get("source", "AlphaFold Database")
+            yield send_progress(
+                "structure", 
+                f"Structure retrieved (UniProt: {structure_data.get('uniprot_id')})",
+                tools=["AlphaFold Database", "PDB Parser"],
+                api=source
+            )
             
-            # Step 3: Binding Sites
+            # Step 3: Binding Sites (conditional)
             binding_sites = None
-            if request.include_binding_sites and binding_agent_available:
-                yield send_progress("binding", "Analyzing drug binding sites...")
+            if should_analyze_binding and request.include_binding_sites and binding_agent_available:
+                yield send_progress(
+                    "binding", 
+                    "Analyzing drug binding sites...",
+                    tools=["BioPython PDBParser", "Geometric Algorithms", "NeighborSearch"],
+                    api="Local Computation"
+                )
                 await asyncio.sleep(0.1)
                 
                 try:
@@ -276,20 +322,58 @@ async def analyze_protein_stream(request: AnalysisRequest):
                         
                         if binding_sites.get("total_pockets", 0) == 0:
                             warnings.append("No binding sites detected")
-                            yield send_progress("binding", "No binding pockets found")
+                            yield send_progress(
+                                "binding", 
+                                "No binding pockets found",
+                                tools=["BioPython PDBParser", "Geometric Algorithms"],
+                                api="Local Computation"
+                            )
                         else:
-                            yield send_progress("binding", f"Found {binding_sites['total_pockets']} binding pockets!")
+                            yield send_progress(
+                                "binding", 
+                                f"Found {binding_sites['total_pockets']} binding pockets!",
+                                tools=["BioPython PDBParser", "Geometric Algorithms"],
+                                api="Local Computation"
+                            )
                     else:
                         warnings.append("No structure file for binding analysis")
-                        yield send_progress("binding", "Structure unavailable for binding analysis")
+                        yield send_progress(
+                            "binding", 
+                            "Structure unavailable for binding analysis",
+                            tools=["BioPython PDBParser"],
+                            api="Local Computation"
+                        )
                         
                 except Exception as e:
                     logger.error(f"Binding site error: {e}")
                     warnings.append(f"Binding analysis failed: {str(e)}")
-                    yield send_progress("binding", "Binding analysis failed")
+                    yield send_progress(
+                        "binding", 
+                        "Binding analysis failed",
+                        tools=["BioPython PDBParser"],
+                        api="Local Computation"
+                    )
+            elif should_analyze_binding and not binding_agent_available:
+                # Binding was requested but agent not available
+                logger.info("Binding analysis requested but agent not available")
+                warnings.append("Binding site analysis not available")
+            elif not should_analyze_binding:
+                # Binding analysis skipped by design (not relevant to query)
+                logger.info("Skipping binding site analysis - not relevant to query")
+                yield send_progress(
+                    "binding", 
+                    "Skipped - not relevant to query",
+                    tools=[],
+                    api="N/A"
+                )
             
             # Step 4: Literature
-            yield send_progress("literature", "Searching research papers on PubMed...")
+            yield send_progress(
+                "literature", 
+                "Searching research papers on PubMed...",
+                tools=["NCBI Entrez", "Europe PMC API"],
+                api="PubMed API + Europe PMC REST"
+            )
             await asyncio.sleep(0.1)
             
             literature_data = search_literature(
@@ -298,18 +382,39 @@ async def analyze_protein_stream(request: AnalysisRequest):
             )
             
             if literature_data and literature_data.get("total_papers", 0) > 0:
-                yield send_progress("literature", f"Found {literature_data['total_papers']} research papers")
+                source = literature_data.get("source", "PubMed")
+                yield send_progress(
+                    "literature", 
+                    f"Found {literature_data['total_papers']} research papers",
+                    tools=["NCBI Entrez", "Europe PMC API"],
+                    api=source
+                )
             else:
                 warnings.append("Literature search returned no results")
-                yield send_progress("literature", "No papers found")
+                yield send_progress(
+                    "literature", 
+                    "No papers found",
+                    tools=["NCBI Entrez", "Europe PMC API"],
+                    api="PubMed API"
+                )
             
             # Step 5: Synthesis
-            yield send_progress("synthesis", "Generating AI analysis with NVIDIA Nemotron...")
+            yield send_progress(
+                "synthesis", 
+                "Generating AI analysis with NVIDIA Nemotron...",
+                tools=["NVIDIA Nemotron LLM", "QA Agent"],
+                api="Nemotron API"
+            )
             await asyncio.sleep(0.1)
             
             synthesis = synthesize_results(entities, structure_data, literature_data, binding_sites)
             
-            yield send_progress("synthesis", "Analysis complete!")
+            yield send_progress(
+                "synthesis", 
+                "Analysis complete!",
+                tools=["NVIDIA Nemotron LLM", "QA Agent"],
+                api="Nemotron API"
+            )
             
             # Send final result
             response = AnalysisResponse(
@@ -380,6 +485,10 @@ async def analyze_protein(request: AnalysisRequest):
         entities["query"] = request.query 
         logger.info(f"Extracted entities: {entities}")
         
+        # Determine if binding sites should be analyzed
+        should_analyze_binding = entities.get("should_analyze_binding_sites", False)
+        logger.info(f"Should analyze binding sites: {should_analyze_binding}")
+        
         # Step 2: Structure
         logger.info(f"Step 2: Fetching structure for {entities['protein']}")
         structure_data = get_protein_structure(
@@ -395,9 +504,9 @@ async def analyze_protein(request: AnalysisRequest):
                 "quality": None
             }
         
-        # Step 2.5: Binding Sites
+        # Step 2.5: Binding Sites (conditional)
         binding_sites = None
-        if request.include_binding_sites and binding_agent_available:
+        if should_analyze_binding and request.include_binding_sites and binding_agent_available:
             logger.info("Step 2.5: Analyzing binding sites")
             try:
                 if structure_data.get("pdb_file"):
@@ -413,6 +522,11 @@ async def analyze_protein(request: AnalysisRequest):
             except Exception as e:
                 logger.error(f"Binding site analysis error: {e}", exc_info=True)
                 warnings.append(f"Binding site analysis failed: {str(e)}")
+        elif should_analyze_binding and not binding_agent_available:
+            logger.info("Binding analysis requested but agent not available")
+            warnings.append("Binding site analysis not available")
+        elif not should_analyze_binding:
+            logger.info("Skipping binding site analysis - not relevant to query")
         
         # Step 3: Literature
         logger.info("Step 3: Searching literature")

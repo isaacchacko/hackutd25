@@ -87,12 +87,32 @@ def extract_entities(query: str) -> dict:
         result["analysis_type"] = "mutation"
     
     # ========================================
-    # Step 5: Determine analysis type
+    # Step 5: Determine analysis type and whether to analyze binding sites
     # ========================================
-    if "drug" in query_lower or "binding" in query_lower or "target" in query_lower:
+    should_analyze_binding = False
+    
+    # Keywords that indicate binding site analysis is relevant
+    binding_keywords = [
+        "drug", "binding", "target", "pocket", "druggable", 
+        "ligand", "inhibitor", "therapeutic", "compound", 
+        "small molecule", "drug target", "binding site"
+    ]
+    
+    # Check if query is about drug binding, targets, or therapeutic applications
+    if any(keyword in query_lower for keyword in binding_keywords):
         result["analysis_type"] = "drug_binding"
+        should_analyze_binding = True
+        logger.info("✓ Query indicates drug binding analysis needed")
     elif "mutation" in query_lower or result["mutation"]:
         result["analysis_type"] = "mutation"
+        should_analyze_binding = False
+        logger.info("✓ Query is about mutations - skipping binding analysis")
+    else:
+        result["analysis_type"] = "general"
+        should_analyze_binding = False
+        logger.info("✓ General query - skipping binding analysis")
+    
+    result["should_analyze_binding_sites"] = should_analyze_binding
     
     logger.info(f"Final extraction result: {result}")
     return result

@@ -22,6 +22,9 @@ function SearchContent() {
   // Real-time progress state
   const [currentStep, setCurrentStep] = useState<string>('planning');
   const [stepMessage, setStepMessage] = useState<string>('');
+  const [currentTools, setCurrentTools] = useState<string[]>([]);
+  const [currentApi, setCurrentApi] = useState<string>('');
+  const [workflowSteps, setWorkflowSteps] = useState<string[]>([]);
 
   // Handle query parameter from landing page
   useEffect(() => {
@@ -40,6 +43,9 @@ function SearchContent() {
     setResults(null);
     setCurrentStep('planning');
     setStepMessage('');
+    setCurrentTools([]);
+    setCurrentApi('');
+    setWorkflowSteps([]);
 
     try {
       // Use streaming API with real-time progress callbacks
@@ -47,8 +53,17 @@ function SearchContent() {
         query,
         (update: ProgressUpdate) => {
           console.log('📊 Progress update:', update);
+          
+          // Handle workflow metadata
+          if (update.step === 'workflow' && update.data) {
+            setWorkflowSteps(update.data.steps || []);
+            return;
+          }
+          
           setCurrentStep(update.step);
           setStepMessage(update.message);
+          setCurrentTools(update.tools || []);
+          setCurrentApi(update.api || '');
         }
       );
 
@@ -72,6 +87,9 @@ function SearchContent() {
     setError(null);
     setCurrentStep('planning');
     setStepMessage('');
+    setCurrentTools([]);
+    setCurrentApi('');
+    setWorkflowSteps([]);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -158,6 +176,9 @@ function SearchContent() {
           <AgentProgress
             currentStep={currentStep}
             stepMessage={stepMessage}
+            tools={currentTools}
+            api={currentApi}
+            workflowSteps={workflowSteps}
           />
         )}
 
