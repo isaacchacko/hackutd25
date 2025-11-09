@@ -1,12 +1,15 @@
 # agents/structure_agent.py
 import requests
 import logging
+import tempfile
+import os
 from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 # Cache directory
 CACHE = {}
+CACHE_DIR = tempfile.gettempdir()  # Use system temp directory
 
 def get_protein_structure(protein_name: str, organism: str = "human") -> dict:
     """
@@ -58,6 +61,12 @@ def get_protein_structure(protein_name: str, organism: str = "human") -> dict:
                 continue
         
         if pdb_data:
+            # Save to file for binding site analysis
+            pdb_file_path = os.path.join(CACHE_DIR, f"{uniprot_id}.pdb")
+            with open(pdb_file_path, 'w') as f:
+                f.write(pdb_data)
+            logger.info(f"Saved structure to {pdb_file_path}")
+            
             # Calculate quality metrics
             quality = calculate_quality(pdb_data)
             
@@ -65,6 +74,7 @@ def get_protein_structure(protein_name: str, organism: str = "human") -> dict:
                 "uniprot_id": uniprot_id,
                 "structure": pdb_data[:1000] + "...",  # Truncated for response
                 "structure_full": pdb_data,
+                "pdb_file": pdb_file_path,  # ← ADD THIS LINE
                 "quality": quality,
                 "source": "AlphaFold Database"
             }
@@ -128,12 +138,19 @@ def try_pdb_database(uniprot_id: str) -> Optional[dict]:
                 
                 if pdb_response.status_code == 200:
                     pdb_data = pdb_response.text
+                    
+                    # Save to file
+                    pdb_file_path = os.path.join(CACHE_DIR, f"{uniprot_id}_pdb.pdb")
+                    with open(pdb_file_path, 'w') as f:
+                        f.write(pdb_data)
+                    
                     quality = calculate_quality(pdb_data)
                     
                     return {
                         "uniprot_id": uniprot_id,
                         "structure": pdb_data[:1000] + "...",
                         "structure_full": pdb_data,
+                        "pdb_file": pdb_file_path,  # ← ADD THIS LINE
                         "quality": quality,
                         "source": f"PDB ({pdb_id})"
                     }
@@ -142,6 +159,7 @@ def try_pdb_database(uniprot_id: str) -> Optional[dict]:
     
     return None
 
+# Rest of your code stays the same...
 def get_uniprot_id(protein_name: str, organism: str) -> Optional[str]:
     """
     Search UniProt for protein ID
