@@ -158,24 +158,23 @@ function SearchContent() {
           </div>
         )}
 
-        {/* Results */}
-        {results && (
-        <>
-          <ResultsPanel
-            results={results}
-            query={submittedQuery}
-            onAskAnother={handleAskAnother}
-          />
-          <div className="mt-8">
-            {/* <ProteinViewer uniprotId={submittedQuery.toUpperCase()} /> */}
-            <ProteinViewer/>
-          </div>
-        </>
-      )}
-      {/* <div className="mt-8">
-        <ProteinViewer uniprotId="A0A2K6V5L6" />
-      </div> */}
-
+       {/* Results */}
+{results && (
+  <>
+    <ResultsPanel
+      results={results}
+      query={submittedQuery}
+      onAskAnother={handleAskAnother}
+    />
+    
+    {/* Only show viewer if we have a valid UniProt ID */}
+    {results.uniprot_id && results.uniprot_id !== "N/A" && (
+      <div className="mt-8">
+        <ProteinViewer uniprotId={results.uniprot_id} />
+      </div>
+    )}
+  </>
+)}
 
 
 

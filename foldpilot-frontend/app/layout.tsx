@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { Instrument_Serif } from 'next/font/google';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import Head from 'next/head';
+import 'molstar/build/viewer/molstar.css';
 
 // Load Instrument Serif font for logo and subtitle
 const instrumentSerif = Instrument_Serif({
@@ -13,8 +13,7 @@ const instrumentSerif = Instrument_Serif({
   display: 'swap',
 });
 
-// Load Inter as fallback for Stack Sans Text (or use a similar sans-serif)
-// If Stack Sans Text is available, replace this
+// Load Inter as fallback for Stack Sans Text
 const stackSans = Inter({
   subsets: ['latin'],
   weight: ['400', '500', '600'],
@@ -33,11 +32,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={`${instrumentSerif.variable} ${stackSans.variable} bg-white text-black`} style={{ fontFamily: 'var(--font-stack-sans)' }}>
-      <Head>
-        <script src="https://cdn.jsdelivr.net/npm/molstar@3.0.0/build/viewer/molstar.js"></script>
-      </Head>
+    <html lang="en" suppressHydrationWarning>
+      <body 
+        className={`${instrumentSerif.variable} ${stackSans.variable} bg-white text-black`} 
+        style={{ fontFamily: 'var(--font-stack-sans)' }}
+        suppressHydrationWarning
+      >
         {children}
       </body>
     </html>
