@@ -38,7 +38,8 @@ export interface ProteinAnalysisResult {
         top_papers: Paper[];
     };
     mutation_analysis?: MutationAnalysis;
-    binding_sites?: BindingSiteAnalysis; // ✅ Updated type
+    binding_sites?: BindingSiteAnalysis;
+    should_analyze_binding_sites?: boolean;
     synthesis: string;
     message?: string;
     warnings?: string[];

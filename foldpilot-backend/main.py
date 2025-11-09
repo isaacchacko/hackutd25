@@ -42,6 +42,7 @@ class AnalysisResponse(BaseModel):
     literature: Optional[dict] = None
     mutation_analysis: Optional[dict] = None
     binding_sites: Optional[dict] = None
+    should_analyze_binding_sites: Optional[bool] = False
     synthesis: str
     message: Optional[str] = None
     warnings: Optional[List[str]] = None
@@ -425,6 +426,7 @@ async def analyze_protein_stream(request: AnalysisRequest):
                 structure_quality=structure_data.get("quality"),
                 literature=literature_data,
                 binding_sites=binding_sites,
+                should_analyze_binding_sites=should_analyze_binding,
                 synthesis=synthesis,
                 warnings=warnings if warnings else None
             )

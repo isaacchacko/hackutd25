@@ -97,7 +97,7 @@ export default function ResultsPanel({ results, query, onAskAnother }: ResultsPa
         </div>
 
         {/* 🎯 BINDING SITES SECTION */}
-        {results.binding_sites && (
+        {results.should_analyze_binding_sites && results.binding_sites && (
           <div className="mb-6">
             <BindingSitesPanel bindingSites={results.binding_sites} />
           </div>
