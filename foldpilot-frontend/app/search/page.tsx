@@ -8,6 +8,8 @@ import { analyzeProtein } from '@/lib/api';
 import { ProteinAnalysisResult } from '@/types';
 import AgentProgress from '@/components/AgentProgress';
 import ResultsPanel from '@/components/ResultsPanel';
+import QueryMarquee from '@/components/QueryMarquee';
+import { exampleQueries } from '@/lib/exampleQueries';
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -26,12 +28,6 @@ function SearchContent() {
     }
   }, [searchParams]);
 
-  const exampleQueries = [
-    'Analyze human p53',
-    'Find drug targets in SARS-CoV-2 spike',
-    'Effects of R273H mutation on p53',
-    'Analyze hemoglobin',
-  ];
 
   const handleAnalyze = async () => {
     if (!query.trim()) return;
@@ -77,9 +73,6 @@ function SearchContent() {
     }
   };
 
-  const handleExampleClick = (example: string) => {
-    setQuery(example);
-  };
 
   return (
     <main className="min-h-screen bg-white text-black">
@@ -87,13 +80,19 @@ function SearchContent() {
         {/* Header */}
         <div className="mb-12">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <Dna className="w-12 h-12 text-black" />
-              <Link href="/">
-                <h1 className="text-6xl font-bold text-black hover:opacity-80 transition-opacity cursor-pointer" style={{ fontFamily: 'var(--font-instrument-serif)' }}>
-                  FoldPilot AI
-                </h1>
-              </Link>
+            <div className='flex flex-col items-center'>
+              <div className="flex items-center gap-3">
+                <Dna className="w-12 h-12 text-black" />
+                <Link href="/">
+                  <h1 className="text-6xl font-bold text-black hover:opacity-80 transition-opacity cursor-pointer" style={{ fontFamily: 'var(--font-instrument-serif)' }}>
+                    FoldPilot AI
+                  </h1>
+                </Link>
+              </div>
+
+              <p className="text-xl text-black/70" style={{ fontFamily: 'var(--font-instrument-serif)' }}>
+                AI-powered protein analysis in seconds
+              </p>
             </div>
             <Link
               href="/"
@@ -102,13 +101,10 @@ function SearchContent() {
               ← Back to Home
             </Link>
           </div>
-          <p className="text-xl text-black/70" style={{ fontFamily: 'var(--font-instrument-serif)' }}>
-            AI-powered protein analysis in seconds
-          </p>
         </div>
 
-        {/* Query Input or Submitted Question */}
-        {!submittedQuery ? (
+        {/* Query Input */}
+        {!submittedQuery && (
           <div className="bg-gray-50 rounded-2xl p-6 mb-8 border border-gray-200 animate-fade-in-up">
             <textarea
               value={query}
@@ -141,41 +137,13 @@ function SearchContent() {
               </button>
             </div>
           </div>
-        ) : (
-          <div className="bg-gray-50 rounded-2xl p-8 mb-8 border border-gray-200 animate-fade-in">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <p className="text-sm text-gray-600 mb-2">Your Question</p>
-                <h2 className="text-3xl font-semibold text-black leading-tight" style={{ fontFamily: 'var(--font-instrument-serif)' }}>
-                  {submittedQuery}
-                </h2>
-              </div>
-              <button
-                onClick={handleAskAnother}
-                className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-100 rounded-lg transition-colors border border-gray-300 text-black text-sm font-medium whitespace-nowrap"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Ask Another Question
-              </button>
-            </div>
-          </div>
         )}
 
-        {/* Example Queries - Only show when no query submitted */}
+        {/* Example Queries Marquee - Only show when no query submitted */}
         {!submittedQuery && (
           <div className="mb-8 animate-fade-in-up-delay">
-            <p className="text-sm text-gray-600 mb-3">Try these examples:</p>
-            <div className="flex flex-wrap gap-2">
-              {exampleQueries.map(example => (
-                <button
-                  key={example}
-                  onClick={() => handleExampleClick(example)}
-                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition-colors border border-gray-300 text-black"
-                >
-                  {example}
-                </button>
-              ))}
-            </div>
+            <p className="text-sm text-gray-600 mb-3">Or, try these examples:</p>
+            <QueryMarquee queries={exampleQueries} />
           </div>
         )}
 
@@ -192,7 +160,11 @@ function SearchContent() {
         {/* Results */}
         {results && (
           <div className="animate-fade-in">
-            <ResultsPanel results={results} />
+            <ResultsPanel
+              results={results}
+              query={submittedQuery}
+              onAskAnother={handleAskAnother}
+            />
           </div>
         )}
       </div>

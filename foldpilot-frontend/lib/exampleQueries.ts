@@ -1,0 +1,28 @@
+// Shared example queries for the application
+export const exampleQueries = [
+  'Analyze human p53',
+  'Find drug targets in SARS-CoV-2 spike',
+  'Effects of R273H mutation on p53',
+  'Analyze hemoglobin',
+  'Structure of insulin receptor',
+  'BRCA1 mutation analysis',
+  'COVID-19 spike protein variants',
+  'Analyze alpha-synuclein',
+  'Tau protein aggregation sites',
+  'EGFR kinase domain structure',
+  'Analyze beta-amyloid peptide',
+  'KRAS mutation effects',
+  'PD-1 binding sites',
+  'Analyze myoglobin',
+  'HER2 receptor structure',
+  'Analyze collagen',
+  'VEGF protein analysis',
+  'Analyze fibrinogen',
+  'TP53 cancer mutations',
+  'Analyze actin',
+  'Insulin protein structure',
+  'Analyze cytochrome c',
+  'Antibody binding sites',
+  'Analyze lysozyme',
+];
+

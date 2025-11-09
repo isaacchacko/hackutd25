@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { Dna, Sparkles, Brain, BookOpen, FileText, ArrowRight, Zap } from 'lucide-react';
-import Squares from '@/components/Squares';
+import QueryMarquee from '@/components/QueryMarquee';
+import { exampleQueries } from '@/lib/exampleQueries';
 
 
 
@@ -30,12 +31,6 @@ export default function Home() {
     },
   ];
 
-  const exampleQueries = [
-    'Analyze human p53',
-    'Find drug targets in SARS-CoV-2 spike',
-    'Effects of R273H mutation on p53',
-    'Analyze hemoglobin',
-  ];
 
   return (
     <main className="min-h-screen bg-white text-black">
@@ -70,20 +65,10 @@ export default function Home() {
           </Link>
         </div>
 
-        {/* Example Queries */}
+        {/* Example Queries Marquee */}
         <div className="mb-20 animate-fade-in-up-delay">
-          <p className="text-sm text-gray-600 mb-4 text-center">Try these examples:</p>
-          <div className="flex flex-wrap justify-center gap-3">
-            {exampleQueries.map((example, index) => (
-              <Link
-                key={example}
-                href={`/search?q=${encodeURIComponent(example)}`}
-                className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition-all border border-gray-300 text-black hover:border-black"
-              >
-                {example}
-              </Link>
-            ))}
-          </div>
+          <p className="text-sm text-gray-600 mb-4 text-center">Or, try these examples:</p>
+          <QueryMarquee queries={exampleQueries} />
         </div>
 
         {/* Features Section */}
