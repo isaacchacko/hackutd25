@@ -131,16 +131,25 @@ const ProteinViewer = ({ uniprotId = "P04637" }: ProteinViewerProps) => {
         let loaded = false;
         let lastError: any = null;
 
+        // Save original console.error to restore later
+        const originalConsoleError = console.error;
+
         for (const source of structureSources) {
           if (!mounted) break;
 
           try {
             console.log(`Attempting to load: ${source.url}`);
 
+            // Silence console.error for 404s
+            console.error = () => {};
+
             const data = await plugin.builders.data.download(
               { url: source.url, isBinary: source.isBinary },
               { state: { isGhost: true } }
             );
+
+            // Restore console.error after successful download
+            console.error = originalConsoleError;
 
             if (!mounted) break;
 
@@ -160,11 +169,16 @@ const ProteinViewer = ({ uniprotId = "P04637" }: ProteinViewerProps) => {
             console.log(`✓ Successfully loaded from: ${source.url}`);
             break;
           } catch (err: any) {
+            // Restore console.error on error
+            console.error = originalConsoleError;
             lastError = err;
             console.warn(`Failed to load ${source.url}:`, err.message || err);
             continue;
           }
         }
+
+        // Make sure console.error is always restored
+        console.error = originalConsoleError;
 
         if (!loaded) {
           const errorMsg = lastError?.message || 'Unknown error';
