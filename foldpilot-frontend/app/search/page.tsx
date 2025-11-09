@@ -105,19 +105,18 @@ function SearchContent() {
         {/* Header */}
         <div className="mb-12">
           <div className="flex items-center justify-between mb-4">
-            <div className='flex flex-col items-center'>
-              <div className="flex items-center gap-3">
-                <Dna className="w-12 h-12 text-black" />
+            <div className="flex items-center gap-6">
+              <Dna className="w-16 h-16 text-black" />
+              <div>
                 <Link href="/">
-                  <h1 className="text-6xl font-bold text-black hover:opacity-80 transition-opacity cursor-pointer" style={{ fontFamily: 'var(--font-instrument-serif)' }}>
+                  <h1 className="text-6xl font-bold text-black hover:opacity-80 transition-opacity cursor-pointer mb-1" style={{ fontFamily: 'var(--font-instrument-serif)' }}>
                     FoldPilot AI
                   </h1>
                 </Link>
+                <p className="text-xl text-black/70" style={{ fontFamily: 'var(--font-instrument-serif)' }}>
+                  AI-powered protein analysis with real-time drug binding detection
+                </p>
               </div>
-
-              <p className="text-xl text-black/70" style={{ fontFamily: 'var(--font-instrument-serif)' }}>
-                AI-powered protein analysis with real-time drug binding detection
-              </p>
             </div>
             <Link
               href="/"
