@@ -112,42 +112,36 @@ function SearchContent() {
 
         {/* Query Input */}
         {!submittedQuery && (
-          <div className="bg-gray-50 rounded-2xl p-6 mb-8 border border-gray-200 animate-fade-in-up">
-            <textarea
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={handleKeyPress}
-              placeholder="Ask about a protein... (e.g., 'Analyze human p53' or 'Find drug targets in SARS-CoV-2 spike')"
-              className="w-full bg-transparent border-none text-black text-lg placeholder-gray-500 focus:outline-none resize-none"
-              rows={3}
-            />
+          <div className="bg-gray-50 rounded-2xl px-6 mb-8 animate-fade-in-up flex flex-row justify-between gap-3">
+            <div className='border border-gray-200 flex-1 rounded-lg'>
+              <textarea
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={handleKeyPress}
+                placeholder="Ask about a protein... (e.g., 'Analyze human p53' or 'Find drug targets in SARS-CoV-2 spike')"
+                className="w-full p-3 bg-transparent border-none text-black text-lg placeholder-gray-500 focus:outline-none resize-none overflow-hidden"
+              />
 
-            <div className="flex items-center justify-between mt-4">
-              <div className="flex items-center gap-4">
-                <p className="text-sm text-gray-600">Press Ctrl+Enter to analyze</p>
-                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
-                  🎯 Real-time drug binding site analysis
-                </span>
-              </div>
 
-              <button
-                onClick={handleAnalyze}
-                disabled={loading || !query.trim()}
-                className="px-6 py-3 bg-black text-white hover:bg-gray-800 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Analyzing...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-5 h-5" />
-                    Analyze Protein
-                  </>
-                )}
-              </button>
             </div>
+
+            <button
+              onClick={handleAnalyze}
+              disabled={loading || !query.trim()}
+              className="px-6 py-3 whitespace-nowrap bg-black text-white hover:bg-gray-800 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5" />
+                  Analyze Protein
+                </>
+              )}
+            </button>
           </div>
         )}
 
