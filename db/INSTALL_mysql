@@ -1,0 +1,33 @@
+***************************************************************************
+*
+* Name:         INSTALL
+*
+* Purpose:      To describe how to import BindingDB data into an
+*               MySQL database.
+*
+* Date:         10/30/2025
+*
+* Contact:      bindingdb@gmail.com
+*
+***************************************************************************
+*
+* DB Version    BDB-mySQL_All_202511
+* MySQL         8.4.4 ( Tested in 8.4.5 )
+*
+***************************************************************************
+
+Instructions
+------------
+
+1. Log into MySQL database server where you intend to load BindingDB data and
+   run the following command to create new database:
+
+    mysql> create database bind;
+
+2. Logout of database and run the following command to load data. You will
+   need to replace USERNAME, PASSWORD, HOST and PORT with local settings.
+   Depending on your database setup you may not need the host and port
+   arguments.
+
+    $> mysql -uUSERNAME -pPASSWORD [-hHOST -PPORT] bind < BDB-mySQL_All_202511.dmp
+
