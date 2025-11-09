@@ -19,10 +19,21 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="FoldPilot AI API", version="1.0.0")
 
-# CORS - allow Next.js to connect
+# CORS - allow Next.js to connect (both local and remote)
+# Get allowed origins from environment variable or use defaults
+allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:3001")
+allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",")]
+
+# Add Railway frontend URL if provided
+frontend_url = os.getenv("FRONTEND_URL")
+if frontend_url and frontend_url not in allowed_origins:
+    allowed_origins.append(frontend_url)
+
+logger.info(f"CORS allowed origins: {allowed_origins}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -620,4 +631,5 @@ def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port, reload=True)
