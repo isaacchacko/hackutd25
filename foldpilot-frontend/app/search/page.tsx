@@ -1,20 +1,30 @@
-
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { Loader2, Dna, Sparkles, ArrowLeft } from 'lucide-react';
 import { analyzeProtein } from '@/lib/api';
 import { ProteinAnalysisResult } from '@/types';
 import AgentProgress from '@/components/AgentProgress';
 import ResultsPanel from '@/components/ResultsPanel';
 
-export default function Home() {
+function SearchContent() {
+  const searchParams = useSearchParams();
   const [query, setQuery] = useState<string>('');
   const [submittedQuery, setSubmittedQuery] = useState<string>('');
   const [results, setResults] = useState<ProteinAnalysisResult | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [agentStep, setAgentStep] = useState<number>(0);
+
+  // Handle query parameter from landing page
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q) {
+      setQuery(q);
+    }
+  }, [searchParams]);
 
   const exampleQueries = [
     'Analyze human p53',
@@ -76,11 +86,21 @@ export default function Home() {
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Header */}
         <div className="mb-12">
-          <div className="flex items-center gap-3 mb-4">
-            <Dna className="w-12 h-12 text-black" />
-            <h1 className="text-6xl font-bold text-black" style={{ fontFamily: 'var(--font-instrument-serif)' }}>
-              FoldPilot AI
-            </h1>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Dna className="w-12 h-12 text-black" />
+              <Link href="/">
+                <h1 className="text-6xl font-bold text-black hover:opacity-80 transition-opacity cursor-pointer" style={{ fontFamily: 'var(--font-instrument-serif)' }}>
+                  FoldPilot AI
+                </h1>
+              </Link>
+            </div>
+            <Link
+              href="/"
+              className="text-sm text-gray-600 hover:text-black transition-colors"
+            >
+              ← Back to Home
+            </Link>
           </div>
           <p className="text-xl text-black/70" style={{ fontFamily: 'var(--font-instrument-serif)' }}>
             AI-powered protein analysis in seconds
@@ -177,5 +197,21 @@ export default function Home() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-white text-black">
+        <div className="container mx-auto px-4 py-8 max-w-6xl">
+          <div className="flex items-center justify-center h-64">
+            <Loader2 className="w-8 h-8 animate-spin text-black" />
+          </div>
+        </div>
+      </main>
+    }>
+      <SearchContent />
+    </Suspense>
   );
 }

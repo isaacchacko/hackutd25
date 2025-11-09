@@ -1,19 +1,34 @@
 'use client';
 
-import { useState } from 'react';
-import { Loader2, Dna, Sparkles, ArrowLeft } from 'lucide-react';
-import { analyzeProtein } from '@/lib/api';
-import { ProteinAnalysisResult } from '@/types';
-import AgentProgress from '@/components/AgentProgress';
-import ResultsPanel from '@/components/ResultsPanel';
+import Link from 'next/link';
+import { Dna, Sparkles, Brain, BookOpen, FileText, ArrowRight, Zap } from 'lucide-react';
+import Squares from '@/components/Squares';
+
+
 
 export default function Home() {
-  const [query, setQuery] = useState<string>('');
-  const [submittedQuery, setSubmittedQuery] = useState<string>('');
-  const [results, setResults] = useState<ProteinAnalysisResult | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [agentStep, setAgentStep] = useState<number>(0);
+  const features = [
+    {
+      icon: Brain,
+      title: 'AI-Powered Analysis',
+      description: 'Advanced AI agents work together to extract insights from protein structures and literature.',
+    },
+    {
+      icon: Dna,
+      title: 'Structure Analysis',
+      description: 'Get detailed protein structure information with quality metrics and confidence scores.',
+    },
+    {
+      icon: BookOpen,
+      title: 'Literature Search',
+      description: 'Automatically search and summarize relevant research papers from PubMed.',
+    },
+    {
+      icon: FileText,
+      title: 'Comprehensive Reports',
+      description: 'Receive detailed analysis reports with mutations, binding sites, and synthesis.',
+    },
+  ];
 
   const exampleQueries = [
     'Analyze human p53',
@@ -22,159 +37,131 @@ export default function Home() {
     'Analyze hemoglobin',
   ];
 
-  const handleAnalyze = async () => {
-    if (!query.trim()) return;
-    
-    setSubmittedQuery(query);
-    setLoading(true);
-    setError(null);
-    setResults(null);
-    setAgentStep(0);
-    
-    try {
-      // Simulate agent progress
-      const progressInterval = setInterval(() => {
-        setAgentStep(prev => Math.min(prev + 1, 4));
-      }, 1500);
-      
-      const data = await analyzeProtein(query);
-      
-      clearInterval(progressInterval);
-      setAgentStep(4);
-      setResults(data);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
-      setError(errorMessage);
-      console.error('Analysis error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAskAnother = () => {
-    setQuery('');
-    setSubmittedQuery('');
-    setResults(null);
-    setError(null);
-    setAgentStep(0);
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault();
-      handleAnalyze();
-    }
-  };
-
-  const handleExampleClick = (example: string) => {
-    setQuery(example);
-  };
-
   return (
     <main className="min-h-screen bg-white text-black">
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        {/* Header */}
-        <div className="mb-12">
-          <div className="flex items-center gap-3 mb-4">
-            <Dna className="w-12 h-12 text-black" />
-            <h1 className="text-6xl font-bold text-black" style={{ fontFamily: 'var(--font-instrument-serif)' }}>
+      {/* Hero Section */}
+      <section className="container mx-auto px-4 py-20 max-w-6xl">
+        <div className="text-center mb-16 animate-fade-in-up">
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <Dna className="w-16 h-16 text-black" />
+            <h1
+              className="text-7xl md:text-8xl font-bold text-black leading-tight"
+              style={{ fontFamily: 'var(--font-instrument-serif)' }}
+            >
               FoldPilot AI
             </h1>
           </div>
-          <p className="text-xl text-black/70" style={{ fontFamily: 'var(--font-instrument-serif)' }}>
+          <p
+            className="text-2xl md:text-3xl text-black/70 mb-6 max-w-3xl mx-auto"
+            style={{ fontFamily: 'var(--font-instrument-serif)' }}
+          >
             AI-powered protein analysis in seconds
           </p>
+          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+            Unlock deep insights into protein structures, mutations, and drug targets with our advanced AI analysis platform.
+          </p>
+          <Link
+            href="/search"
+            className="inline-flex items-center gap-3 px-8 py-4 bg-black text-white hover:bg-gray-800 rounded-lg font-semibold text-lg transition-all transform hover:scale-105 shadow-lg"
+          >
+            <Sparkles className="w-6 h-6" />
+            Start Analyzing
+            <ArrowRight className="w-5 h-5" />
+          </Link>
         </div>
 
-        {/* Query Input or Submitted Question */}
-        {!submittedQuery ? (
-          <div className="bg-gray-50 rounded-2xl p-6 mb-8 border border-gray-200 animate-fade-in-up">
-            <textarea
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={handleKeyPress}
-              placeholder="Ask about a protein... (e.g., 'Analyze human p53' or 'Find drug targets in SARS-CoV-2 spike')"
-              className="w-full bg-transparent border-none text-black text-lg placeholder-gray-500 focus:outline-none resize-none"
-              rows={3}
-            />
-            
-            <div className="flex items-center justify-between mt-4">
-              <p className="text-sm text-gray-600">Press Ctrl+Enter to analyze</p>
-              
-              <button
-                onClick={handleAnalyze}
-                disabled={loading || !query.trim()}
-                className="px-6 py-3 bg-black text-white hover:bg-gray-800 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        {/* Example Queries */}
+        <div className="mb-20 animate-fade-in-up-delay">
+          <p className="text-sm text-gray-600 mb-4 text-center">Try these examples:</p>
+          <div className="flex flex-wrap justify-center gap-3">
+            {exampleQueries.map((example, index) => (
+              <Link
+                key={example}
+                href={`/search?q=${encodeURIComponent(example)}`}
+                className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition-all border border-gray-300 text-black hover:border-black"
               >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Analyzing...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-5 h-5" />
-                    Analyze Protein
-                  </>
-                )}
-              </button>
-            </div>
+                {example}
+              </Link>
+            ))}
           </div>
-        ) : (
-          <div className="bg-gray-50 rounded-2xl p-8 mb-8 border border-gray-200 animate-fade-in">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <p className="text-sm text-gray-600 mb-2">Your Question</p>
-                <h2 className="text-3xl font-semibold text-black leading-tight" style={{ fontFamily: 'var(--font-instrument-serif)' }}>
-                  {submittedQuery}
-                </h2>
+        </div>
+
+        {/* Features Section */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
+          {features.map((feature, index) => {
+            const Icon = feature.icon;
+            return (
+              <div
+                key={feature.title}
+                className="bg-gray-50 rounded-2xl p-6 border border-gray-200 hover:border-black transition-all hover:shadow-lg animate-fade-in-up"
+                style={{ animationDelay: `${0.1 * (index + 1)}s`, opacity: 0 }}
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-black rounded-lg">
+                    <Icon className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-black" style={{ fontFamily: 'var(--font-instrument-serif)' }}>
+                    {feature.title}
+                  </h3>
+                </div>
+                <p className="text-gray-600 leading-relaxed">
+                  {feature.description}
+                </p>
               </div>
-              <button
-                onClick={handleAskAnother}
-                className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-100 rounded-lg transition-colors border border-gray-300 text-black text-sm font-medium whitespace-nowrap"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Ask Another Question
-              </button>
-            </div>
-          </div>
-        )}
+            );
+          })}
+        </div>
 
-        {/* Example Queries - Only show when no query submitted */}
-        {!submittedQuery && (
-          <div className="mb-8 animate-fade-in-up-delay">
-            <p className="text-sm text-gray-600 mb-3">Try these examples:</p>
-            <div className="flex flex-wrap gap-2">
-              {exampleQueries.map(example => (
-                <button
-                  key={example}
-                  onClick={() => handleExampleClick(example)}
-                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition-colors border border-gray-300 text-black"
-                >
-                  {example}
-                </button>
-              ))}
-            </div>
+        {/* How It Works */}
+        <div className="bg-gray-50 rounded-3xl p-12 border border-gray-200 animate-fade-in">
+          <h2
+            className="text-4xl font-bold text-black mb-8 text-center"
+            style={{ fontFamily: 'var(--font-instrument-serif)' }}
+          >
+            How It Works
+          </h2>
+          <div className="grid md:grid-cols-4 gap-8">
+            {[
+              { step: '1', title: 'Ask a Question', desc: 'Enter your protein query in natural language' },
+              { step: '2', title: 'AI Planning', desc: 'Our planning agent extracts protein and mutation information' },
+              { step: '3', title: 'Data Collection', desc: 'Structure and literature agents gather comprehensive data' },
+              { step: '4', title: 'Synthesis', desc: 'Get detailed analysis and insights in seconds' },
+            ].map((item, index) => (
+              <div key={item.step} className="text-center">
+                <div className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+                  {item.step}
+                </div>
+                <h3 className="text-lg font-semibold text-black mb-2">{item.title}</h3>
+                <p className="text-gray-600 text-sm">{item.desc}</p>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
 
-        {/* Agent Progress */}
-        {loading && <AgentProgress step={agentStep} />}
-
-        {/* Error */}
-        {error && (
-          <div className="bg-red-50 border border-red-300 rounded-lg p-4 mb-8">
-            <p className="text-red-800">⚠️ {error}</p>
+        {/* CTA Section */}
+        <div className="mt-20 text-center animate-fade-in">
+          <div className="bg-black text-white rounded-3xl p-12">
+            <Zap className="w-12 h-12 mx-auto mb-4" />
+            <h2
+              className="text-4xl font-bold mb-4"
+              style={{ fontFamily: 'var(--font-instrument-serif)' }}
+            >
+              Ready to Get Started?
+            </h2>
+            <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
+              Start analyzing proteins with AI-powered insights. Get comprehensive reports in seconds.
+            </p>
+            <Link
+              href="/search"
+              className="inline-flex items-center gap-3 px-8 py-4 bg-white text-black hover:bg-gray-100 rounded-lg font-semibold text-lg transition-all transform hover:scale-105"
+            >
+              <Sparkles className="w-6 h-6" />
+              Analyze Your First Protein
+              <ArrowRight className="w-5 h-5" />
+            </Link>
           </div>
-        )}
-
-        {/* Results */}
-        {results && (
-          <div className="animate-fade-in">
-            <ResultsPanel results={results} />
-          </div>
-        )}
-      </div>
+        </div>
+      </section>
     </main>
   );
 }
