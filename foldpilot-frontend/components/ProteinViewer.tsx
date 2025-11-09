@@ -62,6 +62,16 @@ const ProteinViewer = ({ uniprotId = "P04637" }: ProteinViewerProps) => {
               initial: {
                 isExpanded: false,
                 showControls: true,
+                // Disable debug/log window
+                // showLog: false,
+                // Position controls at bottom
+                controlsDisplay: 'portrait',
+                regionState: {
+                  bottom: 'hidden',
+                  left: 'hidden',
+                  right: 'hidden',
+                  top: 'full',
+                },
               },
             },
             components: {
@@ -78,6 +88,26 @@ const ProteinViewer = ({ uniprotId = "P04637" }: ProteinViewerProps) => {
 
         pluginRef.current = plugin;
 
+        // Configure layout to show controls at bottom, stacked vertically
+        try {
+          if (plugin.layout && typeof plugin.layout.setProps === 'function') {
+            plugin.layout.setProps({
+              controlsDisplay: 'portrait',
+            });
+            // Set region states to show bottom panel
+            plugin.layout.setProps({
+              regionState: {
+                bottom: 'full',
+                left: 'hidden',
+                right: 'hidden',
+                top: 'hidden',
+              },
+            });
+          }
+        } catch (e) {
+          console.warn('Could not configure layout programmatically:', e);
+        }
+
         const structureSources = [
           { url: `https://alphafold.ebi.ac.uk/files/AF-${cleanUniprotId}-F1-model_v8.pdb`, format: 'pdb' as const, isBinary: false },
           { url: `https://alphafold.ebi.ac.uk/files/AF-${cleanUniprotId}-F1-model_v7.pdb`, format: 'pdb' as const, isBinary: false },
@@ -86,12 +116,12 @@ const ProteinViewer = ({ uniprotId = "P04637" }: ProteinViewerProps) => {
           { url: `https://alphafold.ebi.ac.uk/files/AF-${cleanUniprotId}-F1-model_v4.pdb`, format: 'pdb' as const, isBinary: false },
           { url: `https://alphafold.ebi.ac.uk/files/AF-${cleanUniprotId}-F1-model_v3.pdb`, format: 'pdb' as const, isBinary: false },
           { url: `https://alphafold.ebi.ac.uk/files/AF-${cleanUniprotId}-F1-model_v2.pdb`, format: 'pdb' as const, isBinary: false },
-          
+
           ...(cleanUniprotId === 'P0DTC2' ? [
             { url: 'https://files.rcsb.org/download/6VXX.pdb', format: 'pdb' as const, isBinary: false },
             { url: 'https://files.rcsb.org/download/6VYB.pdb', format: 'pdb' as const, isBinary: false },
           ] : []),
-          
+
           ...(cleanUniprotId === 'P04637' ? [
             { url: 'https://files.rcsb.org/download/1TUP.pdb', format: 'pdb' as const, isBinary: false },
             { url: 'https://files.rcsb.org/download/1TSR.pdb', format: 'pdb' as const, isBinary: false },
@@ -162,7 +192,7 @@ const ProteinViewer = ({ uniprotId = "P04637" }: ProteinViewerProps) => {
     return () => {
       mounted = false;
       isInitializingRef.current = false;
-      
+
       if (pluginRef.current) {
         console.log('Cleanup: disposing plugin');
         try {
@@ -198,7 +228,7 @@ const ProteinViewer = ({ uniprotId = "P04637" }: ProteinViewerProps) => {
           </div>
         </div>
       </div>
-      
+
       {/* Viewer Container */}
       <div className="relative bg-white molstar-container">
         {loading && (
@@ -211,40 +241,8 @@ const ProteinViewer = ({ uniprotId = "P04637" }: ProteinViewerProps) => {
             </div>
           </div>
         )}
-        
-        {error && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white z-10 p-8">
-            <div className="text-center max-w-md">
-              <div className="inline-flex items-center justify-center w-14 h-14 bg-red-50 rounded-full mb-4">
-                <AlertCircle className="w-7 h-7 text-red-600" />
-              </div>
-              <h4 className="text-black font-bold text-lg mb-2">Structure Load Failed</h4>
-              <p className="text-sm text-gray-600 mb-6 leading-relaxed">{error}</p>
-              
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <a 
-                  href={`https://alphafold.ebi.ac.uk/entry/${uniprotId.split('-')[0]}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-black hover:bg-gray-800 text-white rounded-lg transition-all text-sm font-semibold shadow-lg transform hover:scale-105"
-                >
-                  AlphaFold Database
-                  <ExternalLink className="w-4 h-4" />
-                </a>
-                <a 
-                  href={`https://www.rcsb.org/search?request=%7B%22query%22%3A%7B%22parameters%22%3A%7B%22value%22%3A%22${uniprotId.split('-')[0]}%22%7D%2C%22type%22%3A%22terminal%22%2C%22service%22%3A%22text%22%7D%2C%22return_type%22%3A%22entry%22%7D`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-50 hover:bg-gray-100 text-black border border-gray-200 rounded-lg transition-all text-sm font-semibold"
-                >
-                  RCSB PDB
-                  <ExternalLink className="w-4 h-4" />
-                </a>
-              </div>
-            </div>
-          </div>
-        )}
-        
+
+
         <div
           ref={parentRef}
           style={{
@@ -256,10 +254,34 @@ const ProteinViewer = ({ uniprotId = "P04637" }: ProteinViewerProps) => {
         />
       </div>
 
-      {/* CSS to hide log panel */}
+      {/* CSS to hide log panel and debug window, and configure bottom controls */}
       <style jsx>{`
         .molstar-container :global(.msp-layout-region-log) {
           display: none !important;
+        }
+        .molstar-container :global(.msp-plugin-state) {
+          display: none !important;
+        }
+        .molstar-container :global(.msp-plugin-debug) {
+          display: none !important;
+        }
+        /* Hide any debug-related panels */
+        .molstar-container :global([class*="debug"]) {
+          display: none !important;
+        }
+        /* Position controls at bottom and stack vertically */
+        .molstar-container :global(.msp-layout-region-bottom) {
+          display: flex !important;
+          flex-direction: column !important;
+        }
+        .molstar-container :global(.msp-layout-region-left),
+        .molstar-container :global(.msp-layout-region-right),
+        .molstar-container :global(.msp-layout-region-top) {
+          display: none !important;
+        }
+        /* Stack control elements vertically */
+        .molstar-container :global(.msp-layout-region-bottom > *) {
+          width: 100% !important;
         }
       `}</style>
     </div>

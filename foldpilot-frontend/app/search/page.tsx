@@ -18,7 +18,7 @@ function SearchContent() {
   const [results, setResults] = useState<ProteinAnalysisResult | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Real-time progress state
   const [currentStep, setCurrentStep] = useState<string>('planning');
   const [stepMessage, setStepMessage] = useState<string>('');
@@ -54,7 +54,7 @@ function SearchContent() {
 
       console.log('✅ Final result:', data);
       console.log('🎯 Binding sites:', data.binding_sites);
-      
+
       setResults(data);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
@@ -161,8 +161,8 @@ function SearchContent() {
 
         {/* Real-time Agent Progress */}
         {loading && (
-          <AgentProgress 
-            currentStep={currentStep} 
+          <AgentProgress
+            currentStep={currentStep}
             stepMessage={stepMessage}
           />
         )}
