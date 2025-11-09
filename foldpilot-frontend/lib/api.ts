@@ -12,17 +12,40 @@ const apiClient = axios.create({
   },
 });
 
+/**
+ * Analyze a protein based on a natural language query
+ * @param query - Natural language query about the protein
+ * @returns Promise<ProteinAnalysisResult>
+ */
 export const analyzeProtein = async (query: string): Promise<ProteinAnalysisResult> => {
   try {
-    const response = await apiClient.post<ProteinAnalysisResult>('/api/analyze', {
+    console.log('Sending request to backend:', {
       query,
+      include_binding_sites: true
     });
+
+    const response = await apiClient.post<ProteinAnalysisResult>('/api/analyze', {
+      query: query.trim(),
+      include_binding_sites: true, // ✅ Always include binding sites
+    });
+
+    console.log('Backend response:', response.data);
+
+    // Verify binding_sites is in the response
+    if (response.data.binding_sites) {
+      console.log('✅ Binding sites received:', response.data.binding_sites.total_pockets, 'pockets');
+    } else {
+      console.warn('⚠️ No binding sites in response');
+    }
+
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError<{ detail: string }>;
+      console.error('API Error:', axiosError.response?.data || axiosError.message);
       throw new Error(axiosError.response?.data?.detail || axiosError.message);
     }
+    console.error('Unknown error:', error);
     throw error;
   }
 };

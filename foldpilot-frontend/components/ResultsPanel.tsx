@@ -1,7 +1,8 @@
 // src/components/ResultsPanel.tsx
 import { ProteinAnalysisResult } from '@/types';
-import { ExternalLink, Download, ArrowLeft } from 'lucide-react';
+import { ExternalLink, Download, ArrowLeft, AlertCircle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import BindingSitesPanel from './BindingSitesPanel';
 
 interface ResultsPanelProps {
   results: ProteinAnalysisResult;
@@ -22,6 +23,23 @@ export default function ResultsPanel({ results, query, onAskAnother }: ResultsPa
 
   return (
     <div className="space-y-6">
+      {/* Warnings */}
+      {results.warnings && results.warnings.length > 0 && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 animate-slide-in-up">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+            <div>
+              <p className="font-semibold text-yellow-800 mb-1">Notice</p>
+              <ul className="text-sm text-yellow-700 space-y-1">
+                {results.warnings.map((warning, idx) => (
+                  <li key={idx}>• {warning}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Quick Stats */}
       <div className="bg-gray-50 rounded-2xl p-8 border border-gray-200 animate-slide-in-up">
         <div className="flex items-start justify-between mb-6 gap-4">
@@ -72,6 +90,13 @@ export default function ResultsPanel({ results, query, onAskAnother }: ResultsPa
           )}
         </div>
 
+        {/* 🎯 BINDING SITES SECTION - Add this right after stats */}
+        {results.binding_sites && (
+          <div className="mb-6">
+            <BindingSitesPanel bindingSites={results.binding_sites} />
+          </div>
+        )}
+
         {/* Synthesis */}
         {results.synthesis && (
           <div className="bg-white rounded-lg p-6 border border-gray-200 animate-slide-in-up-delay-2">
@@ -111,12 +136,12 @@ export default function ResultsPanel({ results, query, onAskAnother }: ResultsPa
             <div className="space-y-3">
               {results.literature.top_papers.slice(0, 5).map((paper) => (
                 <div key={paper.pmid} className="border-l-2 border-black pl-4">
-                  <a
+                  
                     href={`https://pubmed.ncbi.nlm.nih.gov/${paper.pmid}/`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:text-blue-800 flex items-center gap-2"
-                  >
+                  <a>
                     {paper.title}
                     <ExternalLink className="w-4 h-4" />
                   </a>

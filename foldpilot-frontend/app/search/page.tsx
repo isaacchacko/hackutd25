@@ -28,7 +28,6 @@ function SearchContent() {
     }
   }, [searchParams]);
 
-
   const handleAnalyze = async () => {
     if (!query.trim()) return;
 
@@ -44,6 +43,7 @@ function SearchContent() {
         setAgentStep(prev => Math.min(prev + 1, 4));
       }, 1500);
 
+      // ✅ Binding sites are always enabled (no parameter needed - handled in api.ts)
       const data = await analyzeProtein(query);
 
       clearInterval(progressInterval);
@@ -73,7 +73,6 @@ function SearchContent() {
     }
   };
 
-
   return (
     <main className="min-h-screen bg-white text-black">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -91,7 +90,7 @@ function SearchContent() {
               </div>
 
               <p className="text-xl text-black/70" style={{ fontFamily: 'var(--font-instrument-serif)' }}>
-                AI-powered protein analysis in seconds
+                AI-powered protein analysis with drug binding site detection
               </p>
             </div>
             <Link
@@ -116,7 +115,13 @@ function SearchContent() {
             />
 
             <div className="flex items-center justify-between mt-4">
-              <p className="text-sm text-gray-600">Press Ctrl+Enter to analyze</p>
+              <div className="flex items-center gap-4">
+                <p className="text-sm text-gray-600">Press Ctrl+Enter to analyze</p>
+                {/* ✅ Info badge showing binding sites are included */}
+                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+                  🎯 Includes drug binding site analysis
+                </span>
+              </div>
 
               <button
                 onClick={handleAnalyze}
