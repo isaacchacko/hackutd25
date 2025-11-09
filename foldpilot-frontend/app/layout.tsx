@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Instrument_Serif } from 'next/font/google';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import Head from 'next/head';
 
 // Load Instrument Serif font for logo and subtitle
 const instrumentSerif = Instrument_Serif({
@@ -34,6 +35,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${instrumentSerif.variable} ${stackSans.variable} bg-white text-black`} style={{ fontFamily: 'var(--font-stack-sans)' }}>
+      <Head>
+        <script src="https://cdn.jsdelivr.net/npm/molstar@3.0.0/build/viewer/molstar.js"></script>
+      </Head>
         {children}
       </body>
     </html>
