@@ -86,6 +86,12 @@ async def analyze_protein(request: AnalysisRequest):
         # ========================================
         logger.info("Step 1: Planning - extracting entities")
         entities = extract_entities(request.query)
+        if entities.get("error"):
+            raise HTTPException(
+                status_code=404,
+                detail=entities["error"]
+            )
+
         
         if not entities.get("protein"):
             raise HTTPException(
