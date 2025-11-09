@@ -19,8 +19,8 @@ export default function AgentProgress({ step }: AgentProgressProps) {
   ];
 
   return (
-    <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 mb-8 border border-white/20">
-      <h3 className="text-xl font-semibold mb-6">AI Agents Working...</h3>
+    <div className="bg-gray-50 rounded-2xl p-8 mb-8 border border-gray-200">
+      <h3 className="text-xl font-semibold mb-6 text-black">AI Agents Working...</h3>
       
       <div className="grid grid-cols-4 gap-4">
         {agents.map((agent, index) => {
@@ -33,21 +33,21 @@ export default function AgentProgress({ step }: AgentProgressProps) {
               key={agent.name}
               className={`
                 p-4 rounded-lg border-2 transition-all
-                ${isActive ? 'border-blue-500 bg-blue-500/20 scale-105' : ''}
-                ${isComplete ? 'border-green-500 bg-green-500/10' : ''}
-                ${!isActive && !isComplete ? 'border-white/10 bg-white/5 opacity-50' : ''}
+                ${isActive ? 'border-black bg-gray-100 scale-105' : ''}
+                ${isComplete ? 'border-green-600 bg-green-50' : ''}
+                ${!isActive && !isComplete ? 'border-gray-300 bg-white opacity-50' : ''}
               `}
             >
               <Icon className={`
                 w-8 h-8 mb-2
-                ${isActive ? 'animate-pulse text-blue-400' : ''}
-                ${isComplete ? 'text-green-400' : ''}
+                ${isActive ? 'animate-pulse text-black' : ''}
+                ${isComplete ? 'text-green-600' : 'text-gray-400'}
               `} />
-              <p className="font-semibold">{agent.name}</p>
-              <p className="text-xs text-gray-400 mt-1">{agent.description}</p>
+              <p className="font-semibold text-black">{agent.name}</p>
+              <p className="text-xs text-gray-600 mt-1">{agent.description}</p>
               
               {isComplete && (
-                <div className="mt-2 text-green-400 text-sm">✓ Complete</div>
+                <div className="mt-2 text-green-600 text-sm">✓ Complete</div>
               )}
             </div>
           );
