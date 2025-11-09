@@ -22,12 +22,16 @@ app = FastAPI(title="FoldPilot AI API", version="1.0.0")
 # CORS - allow Next.js to connect (both local and remote)
 # Get allowed origins from environment variable or use defaults
 allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:3001")
-allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",")]
+# Normalize origins: strip whitespace and trailing slashes
+allowed_origins = [origin.strip().rstrip('/') for origin in allowed_origins_str.split(",")]
 
 # Add Railway frontend URL if provided
 frontend_url = os.getenv("FRONTEND_URL")
-if frontend_url and frontend_url not in allowed_origins:
-    allowed_origins.append(frontend_url)
+if frontend_url:
+    # Normalize: remove trailing slash to match browser Origin header format
+    frontend_url = frontend_url.strip().rstrip('/')
+    if frontend_url and frontend_url not in allowed_origins:
+        allowed_origins.append(frontend_url)
 
 # For development/debugging: allow all origins if needed (not recommended for production)
 # In production, ensure FRONTEND_URL is set correctly
@@ -55,18 +59,39 @@ async def log_cors_requests(request: Request, call_next):
     method = request.method
     path = request.url.path
     
+    # Normalize origin for comparison (remove trailing slash)
+    normalized_origin = origin.rstrip('/') if origin else None
+    
     # Log CORS-related requests
     if method == "OPTIONS" or origin:
-        is_allowed = origin in allowed_origins if origin and "*" not in allowed_origins else True
-        logger.info(f"🌐 CORS request: {method} {path} | Origin: {origin} | Allowed: {is_allowed}")
+        # Check if origin is allowed (normalize for comparison)
+        if "*" in allowed_origins:
+            is_allowed = True
+        elif normalized_origin:
+            # Check both with and without trailing slash
+            is_allowed = normalized_origin in allowed_origins or origin in allowed_origins
+        else:
+            is_allowed = False
+        logger.info(f"🌐 CORS request: {method} {path} | Origin: {origin} | Normalized: {normalized_origin} | Allowed: {is_allowed}")
     
     response = await call_next(request)
     
     # Ensure OPTIONS responses have proper CORS headers
     if method == "OPTIONS":
-        response.headers["Access-Control-Allow-Origin"] = origin or "*" if "*" in allowed_origins else (origin if origin in allowed_origins else allowed_origins[0] if allowed_origins else "*")
+        # Determine allowed origin
+        if "*" in allowed_origins:
+            allow_origin = "*"
+        elif normalized_origin and (normalized_origin in allowed_origins or origin in allowed_origins):
+            allow_origin = origin  # Use original origin header value
+        elif allowed_origins:
+            allow_origin = allowed_origins[0]
+        else:
+            allow_origin = "*"
+        
+        response.headers["Access-Control-Allow-Origin"] = allow_origin
         response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, HEAD"
         response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Allow-Credentials"] = "true"
         response.headers["Access-Control-Max-Age"] = "3600"
     
     return response
@@ -268,12 +293,25 @@ async def send_progress(step: str, message: str, data: dict = None):
 async def options_analyze_stream(request: Request):
     """Handle CORS preflight for streaming endpoint"""
     origin = request.headers.get("origin")
+    normalized_origin = origin.rstrip('/') if origin else None
+    
+    # Determine allowed origin
+    if "*" in allowed_origins:
+        allow_origin = "*"
+    elif normalized_origin and (normalized_origin in allowed_origins or (origin and origin in allowed_origins)):
+        allow_origin = origin  # Use original origin header value
+    elif allowed_origins:
+        allow_origin = allowed_origins[0]
+    else:
+        allow_origin = "*"
+    
     response = Response(status_code=200)
-    response.headers["Access-Control-Allow-Origin"] = origin or "*" if "*" in allowed_origins else (origin if origin and origin in allowed_origins else allowed_origins[0] if allowed_origins else "*")
+    response.headers["Access-Control-Allow-Origin"] = allow_origin
     response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
     response.headers["Access-Control-Allow-Credentials"] = "true"
     response.headers["Access-Control-Max-Age"] = "3600"
+    logger.info(f"✅ OPTIONS /api/analyze/stream - Allowing origin: {allow_origin}")
     return response
 
 @app.post("/api/analyze/stream")
@@ -521,12 +559,25 @@ async def analyze_protein_stream(request: AnalysisRequest):
 async def options_analyze(request: Request):
     """Handle CORS preflight for analyze endpoint"""
     origin = request.headers.get("origin")
+    normalized_origin = origin.rstrip('/') if origin else None
+    
+    # Determine allowed origin
+    if "*" in allowed_origins:
+        allow_origin = "*"
+    elif normalized_origin and (normalized_origin in allowed_origins or (origin and origin in allowed_origins)):
+        allow_origin = origin  # Use original origin header value
+    elif allowed_origins:
+        allow_origin = allowed_origins[0]
+    else:
+        allow_origin = "*"
+    
     response = Response(status_code=200)
-    response.headers["Access-Control-Allow-Origin"] = origin or "*" if "*" in allowed_origins else (origin if origin and origin in allowed_origins else allowed_origins[0] if allowed_origins else "*")
+    response.headers["Access-Control-Allow-Origin"] = allow_origin
     response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
     response.headers["Access-Control-Allow-Credentials"] = "true"
     response.headers["Access-Control-Max-Age"] = "3600"
+    logger.info(f"✅ OPTIONS /api/analyze - Allowing origin: {allow_origin}")
     return response
 
 @app.post("/api/analyze", response_model=AnalysisResponse)
