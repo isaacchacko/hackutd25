@@ -28,7 +28,7 @@ app.add_middleware(
 # Request/Response Models
 class AnalysisRequest(BaseModel):
     query: str
-    include_binding_sites: Optional[bool] = False  # Optional feature flag
+    include_binding_sites: Optional[bool] = True  # Optional feature flag
 
 class AnalysisResponse(BaseModel):
     protein: str
