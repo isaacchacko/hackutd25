@@ -1,12 +1,15 @@
 // src/components/BindingSitesPanel.tsx
+import { useState } from 'react';
 import { BindingSiteAnalysis } from '@/types';
-import { Target, MapPin } from 'lucide-react';
+import { Target, MapPin, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface BindingSitesPanelProps {
   bindingSites: BindingSiteAnalysis;
 }
 
 export default function BindingSitesPanel({ bindingSites }: BindingSitesPanelProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   if (!bindingSites || bindingSites.total_pockets === 0) {
     return (
       <div className="bg-white rounded-lg p-6 border border-yellow-200 animate-slide-in-up-delay-2">
@@ -21,6 +24,11 @@ export default function BindingSitesPanel({ bindingSites }: BindingSitesPanelPro
     );
   }
 
+  const displayedPockets = isExpanded 
+    ? bindingSites.top_pockets 
+    : bindingSites.top_pockets.slice(0, 1);
+  const remainingCount = isExpanded ? 0 : bindingSites.top_pockets.length - 1;
+
   return (
     <div className="bg-white rounded-lg p-6 border border-blue-200 animate-slide-in-up-delay-2">
       <div className="flex items-center justify-between mb-4">
@@ -28,10 +36,30 @@ export default function BindingSitesPanel({ bindingSites }: BindingSitesPanelPro
           <Target className="w-6 h-6 text-blue-600" />
           <h3 className="font-semibold text-xl text-black">Drug Binding Sites</h3>
         </div>
-        <div className="bg-blue-100 px-3 py-1 rounded-full">
-          <span className="text-blue-700 font-semibold text-sm">
-            {bindingSites.total_pockets} pockets found
-          </span>
+        <div className="flex items-center gap-3">
+          <div className="bg-blue-100 px-3 py-1 rounded-full">
+            <span className="text-blue-700 font-semibold text-sm">
+              {bindingSites.total_pockets} pockets found
+            </span>
+          </div>
+          {bindingSites.top_pockets.length > 1 && (
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors font-medium text-sm"
+            >
+              {isExpanded ? (
+                <>
+                  <ChevronUp className="w-4 h-4" />
+                  Collapse
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="w-4 h-4" />
+                  Show All ({remainingCount} more)
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
 
@@ -44,7 +72,7 @@ export default function BindingSitesPanel({ bindingSites }: BindingSitesPanelPro
 
       {/* Top Pockets Grid */}
       <div className="grid grid-cols-1 gap-4">
-        {bindingSites.top_pockets.map((pocket, index) => (
+        {displayedPockets.map((pocket, index) => (
           <PocketCard key={pocket.pocket_id} pocket={pocket} rank={index + 1} />
         ))}
       </div>
