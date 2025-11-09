@@ -10,6 +10,7 @@ import AgentProgress from '@/components/AgentProgress';
 import ResultsPanel from '@/components/ResultsPanel';
 import QueryMarquee from '@/components/QueryMarquee';
 import { exampleQueries } from '@/lib/exampleQueries';
+import ProteinViewer from '@/components/ProteinViewer';
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -162,16 +163,26 @@ function SearchContent() {
           </div>
         )}
 
-        {/* Results */}
-        {results && (
-          <div className="animate-fade-in">
-            <ResultsPanel
-              results={results}
-              query={submittedQuery}
-              onAskAnother={handleAskAnother}
-            />
-          </div>
-        )}
+       {/* Results */}
+{results && (
+  <>
+    <ResultsPanel
+      results={results}
+      query={submittedQuery}
+      onAskAnother={handleAskAnother}
+    />
+    
+    {/* Only show viewer if we have a valid UniProt ID */}
+    {results.uniprot_id && results.uniprot_id !== "N/A" && (
+      <div className="mt-8">
+        <ProteinViewer uniprotId={results.uniprot_id} />
+      </div>
+    )}
+  </>
+)}
+
+
+
       </div>
     </main>
   );
