@@ -22,8 +22,9 @@ PROTEIN_DATABASE = {
     "egfr": {"uniprot": "P00533", "organism": "human", "full_name": "EGFR"},
     "brca1": {"uniprot": "P38398", "organism": "human", "full_name": "BRCA1"},
     "lysozyme": {"uniprot": "P61626", "organism": "human", "full_name": "Lysozyme C"},
-    "ecoli": {"uniprot": "A0A069FCV9", "organism": "Escherichia coli", "full_name": "cas5e"},
-    "E. Coli": {"uniprot": "A0A069FCV9", "organism": "Escherichia coli", "full_name": "cas5e"}
+    "ecoli": {"uniprot": "A0A069FCV9", "organism": "Escherichia coli", "full_name": "Escherichia coli"},
+    "E. Coli": {"uniprot": "A0A069FCV9", "organism": "Escherichia coli", "full_name": "Escherichia coli"},
+    "flu": {"uniprot": "A0A0D0TLY9", "organism": "Pseudomonas fluorescens", "full_name": "Pseudomonas fluorescens"}
 }
 
 def extract_entities(query: str) -> dict:
