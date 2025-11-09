@@ -261,7 +261,7 @@ def _search_europe_pmc(protein: str, mutation: Optional[str]) -> Optional[Dict]:
 # Optional: Pre-cache common proteins for demo
 CACHED_LITERATURE = {
     "TP53": {
-        "total_papers": 20,
+        "total_papers": 30000,
         "key_findings": "TP53 is the most frequently mutated gene in human cancers",
         "top_papers": [
             {
