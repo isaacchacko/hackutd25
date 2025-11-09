@@ -93,9 +93,9 @@ def extract_entities(query: str) -> dict:
     
     # Keywords that indicate binding site analysis is relevant
     binding_keywords = [
-        "drug", "binding", "target", "pocket", "druggable", 
-        "ligand", "inhibitor", "therapeutic", "compound", 
-        "small molecule", "drug target", "binding site"
+        "drug", "binding", "target", "pocket", "druggable", "vaccine", "medication", "analyze"
+        "ligand", "inhibitor", "therapeutic", "compound", "interact", "interaction", "describe",
+        "small molecule", "drug target", "binding", "site", "reaction", "react", "surface"
     ]
     
     # Check if query is about drug binding, targets, or therapeutic applications
