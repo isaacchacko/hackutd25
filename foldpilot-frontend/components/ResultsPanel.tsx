@@ -136,12 +136,12 @@ export default function ResultsPanel({ results, query, onAskAnother }: ResultsPa
             <div className="space-y-3">
               {results.literature.top_papers.slice(0, 5).map((paper) => (
                 <div key={paper.pmid} className="border-l-2 border-black pl-4">
-                  
+                  <a
                     href={`https://pubmed.ncbi.nlm.nih.gov/${paper.pmid}/`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:text-blue-800 flex items-center gap-2"
-                  <a>
+                  >
                     {paper.title}
                     <ExternalLink className="w-4 h-4" />
                   </a>
