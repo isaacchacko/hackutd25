@@ -46,8 +46,8 @@ export default function ResultsPanel({ results, query, onAskAnother }: ResultsPa
         <div className="flex items-start justify-between mb-6 gap-4">
           <div className="flex-1">
             <h2 className="text-4xl font-semibold text-black leading-tight" style={{ fontFamily: 'var(--font-instrument-serif)' }}>
-              Analysis Results{query && (
-                <>: <span className="italic">{query}</span></>
+              {query && (
+                <><span className="italic">{query}</span></>
               )}
             </h2>
           </div>
@@ -92,7 +92,7 @@ export default function ResultsPanel({ results, query, onAskAnother }: ResultsPa
         </div>
 
         {/* 🧬 3D PROTEIN VIEWER - NEW! */}
-        <div className="mb-6">
+        <div className="mb-6" id="molstar-viewer-container">
           <ProteinViewer uniprotId={results.uniprot_id} />
         </div>
 

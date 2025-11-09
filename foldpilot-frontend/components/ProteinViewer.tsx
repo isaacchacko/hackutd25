@@ -13,6 +13,10 @@ const ProteinViewer = ({ uniprotId = "P04637" }: ProteinViewerProps) => {
   const isInitializingRef = useRef(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [canvasHeight, setCanvasHeight] = useState(400);
+  const isResizingRef = useRef(false);
+  const resizeStartYRef = useRef(0);
+  const resizeStartHeightRef = useRef(400);
 
   useEffect(() => {
     let mounted = true;
@@ -189,6 +193,10 @@ const ProteinViewer = ({ uniprotId = "P04637" }: ProteinViewerProps) => {
 
         if (mounted) {
           setLoading(false);
+          // Resize plugin canvas to match container
+          if (pluginRef.current && parentRef.current) {
+            pluginRef.current.layout?.update?.();
+          }
         }
       } catch (err: any) {
         console.error('Mol* viewer error:', err);
@@ -218,6 +226,59 @@ const ProteinViewer = ({ uniprotId = "P04637" }: ProteinViewerProps) => {
       }
     };
   }, [uniprotId]);
+
+  // Handle canvas resize - notify molstar plugin
+  useEffect(() => {
+    if (pluginRef.current && parentRef.current) {
+      // Use requestAnimationFrame to ensure DOM has updated
+      requestAnimationFrame(() => {
+        if (pluginRef.current) {
+          // Trigger molstar canvas resize
+          const canvas = pluginRef.current.canvas3d;
+          if (canvas) {
+            canvas.handleResize();
+          }
+          // Also update layout
+          pluginRef.current.layout?.update?.();
+        }
+      });
+    }
+  }, [canvasHeight]);
+
+  // Handle mouse events for resizing
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizingRef.current) return;
+
+      const deltaY = e.clientY - resizeStartYRef.current;
+      const newHeight = Math.max(200, Math.min(800, resizeStartHeightRef.current + deltaY));
+      setCanvasHeight(newHeight);
+    };
+
+    const handleMouseUp = () => {
+      if (!isResizingRef.current) return;
+      isResizingRef.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
+
+  const handleResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    isResizingRef.current = true;
+    resizeStartYRef.current = e.clientY;
+    resizeStartHeightRef.current = canvasHeight;
+    document.body.style.cursor = 'ns-resize';
+    document.body.style.userSelect = 'none';
+  };
 
   return (
     <div className="bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden animate-fade-in-up mb-8">
@@ -261,11 +322,25 @@ const ProteinViewer = ({ uniprotId = "P04637" }: ProteinViewerProps) => {
           ref={parentRef}
           style={{
             width: '100%',
-            height: 400,
-            minHeight: 400,
+            height: canvasHeight,
+            minHeight: 200,
+            maxHeight: 800,
             position: 'relative',
           }}
         />
+        {/* Resize Handle */}
+        <div
+          onMouseDown={handleResizeStart}
+          className="absolute bottom-0 left-0 right-0 h-3 bg-gray-100 hover:bg-gray-300 cursor-ns-resize transition-colors group border-t border-gray-300"
+          style={{ zIndex: 30 }}
+          title="Drag to resize canvas height"
+        >
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex gap-1.5 opacity-50 group-hover:opacity-100 transition-opacity">
+            <div className="w-1 h-5 bg-gray-500 rounded"></div>
+            <div className="w-1 h-5 bg-gray-500 rounded"></div>
+            <div className="w-1 h-5 bg-gray-500 rounded"></div>
+          </div>
+        </div>
       </div>
 
       {/* CSS to hide log panel and debug window, and configure bottom controls */}

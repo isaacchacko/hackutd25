@@ -48,13 +48,13 @@ export default function AgentProgress({ step, currentStep, stepMessage }: AgentP
           <p className="text-sm text-gray-600 italic">{stepMessage}</p>
         )}
       </div>
-      
+
       <div className="grid grid-cols-5 gap-4">
         {agents.map((agent, index) => {
           const Icon = agent.icon;
           const isActive = currentIndex === index;
           const isComplete = currentIndex > index;
-          
+
           return (
             <div
               key={agent.name}
@@ -72,12 +72,12 @@ export default function AgentProgress({ step, currentStep, stepMessage }: AgentP
               `} />
               <p className="font-semibold text-black text-sm">{agent.name}</p>
               <p className="text-xs text-gray-600 mt-1">{agent.description}</p>
-              
+
               {isComplete && (
                 <div className="mt-2 text-green-600 text-sm font-medium">✓ Complete</div>
               )}
               {isActive && (
-                <div className="mt-2 text-black text-sm font-medium">● Working...</div>
+                <div className="mt-2 text-black text-sm font-medium animate-pulse">● Working...</div>
               )}
             </div>
           );

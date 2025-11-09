@@ -3,6 +3,110 @@ import { useState } from 'react';
 import { BindingSiteAnalysis } from '@/types';
 import { Target, MapPin, ChevronDown, ChevronUp } from 'lucide-react';
 
+// Function to handle residue chip click - scrolls to molstar and clicks on sequence
+const handleResidueClick = (residueNumber: number) => {
+  // First, scroll to the molstar viewer with smooth animation
+  // Try container ID first, then fallback to class
+  const molstarViewer = document.getElementById('molstar-viewer-container') ||
+    document.querySelector('.molstar-container');
+
+  if (molstarViewer) {
+    molstarViewer.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
+
+    // Wait for scroll to complete, then find and click the residue
+    setTimeout(() => {
+      // Calculate the seqid (0-indexed, so residueNumber - 1)
+      const seqid = residueNumber - 1;
+
+      // Find the element with data-seqid matching our calculated value
+      // Search in the entire document, but prefer elements within molstar containers
+      const molstarContainer = document.querySelector('.molstar-container');
+      const searchRoot = molstarContainer || document;
+
+      // Look for the element with the matching data-seqid
+      const targetElement = searchRoot.querySelector(
+        `span[data-seqid="${seqid}"].msp-sequence-present`
+      ) as HTMLElement;
+
+      if (targetElement) {
+        // First, ensure the element is visible and in viewport
+        targetElement.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+        
+        // Wait a bit more for the scroll to complete, then interact
+        setTimeout(() => {
+          // Focus the element first
+          targetElement.focus();
+          
+          // Get the element's bounding box to calculate click coordinates
+          const rect = targetElement.getBoundingClientRect();
+          const x = rect.left + rect.width / 2;
+          const y = rect.top + rect.height / 2;
+          
+          // Create a more complete mouse event sequence
+          // This simulates a real user click more accurately
+          const mouseDownEvent = new MouseEvent('mousedown', {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+            clientX: x,
+            clientY: y,
+            button: 0
+          });
+          
+          const mouseUpEvent = new MouseEvent('mouseup', {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+            clientX: x,
+            clientY: y,
+            button: 0
+          });
+          
+          const clickEvent = new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+            clientX: x,
+            clientY: y,
+            button: 0
+          });
+          
+          // Dispatch events in the correct order
+          targetElement.dispatchEvent(mouseDownEvent);
+          setTimeout(() => {
+            targetElement.dispatchEvent(mouseUpEvent);
+            setTimeout(() => {
+              targetElement.dispatchEvent(clickEvent);
+            }, 10);
+          }, 10);
+          
+          // Also try the direct click method as a fallback
+          setTimeout(() => {
+            targetElement.click();
+          }, 50);
+
+          // Add a visual highlight temporarily
+          const originalBg = targetElement.style.backgroundColor;
+          const originalOutline = targetElement.style.outline;
+          targetElement.style.backgroundColor = 'rgba(59, 130, 246, 0.3)';
+          targetElement.style.outline = '2px solid rgba(59, 130, 246, 0.8)';
+          setTimeout(() => {
+            targetElement.style.backgroundColor = originalBg;
+            targetElement.style.outline = originalOutline;
+          }, 1000);
+        }, 300); // Wait 300ms for element scroll to complete
+      } else {
+        console.warn(`Could not find element with data-seqid="${seqid}" for residue ${residueNumber}`);
+      }
+    }, 800); // Wait 800ms for initial scroll animation to complete
+  } else {
+    console.warn('Could not find molstar viewer');
+  }
+};
+
 interface BindingSitesPanelProps {
   bindingSites: BindingSiteAnalysis;
 }
@@ -151,15 +255,22 @@ function PocketCard({ pocket, rank }: PocketCardProps) {
           View residues ({pocket.residues.length})
         </summary>
         <div className="mt-2 flex flex-wrap gap-1">
-          {pocket.residue_names.slice(0, 15).map((name, idx) => (
-            <span
-              key={idx}
-              className="text-xs bg-white px-2 py-1 rounded border border-gray-300 font-mono"
-              title={`Residue ${pocket.residues[idx]}`}
-            >
-              {name}{pocket.residues[idx]}
-            </span>
-          ))}
+          {pocket.residue_names.slice(0, 15).map((name, idx) => {
+            const residueNumber = pocket.residues[idx];
+            return (
+              <button
+                key={idx}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleResidueClick(residueNumber);
+                }}
+                className="text-xs bg-white px-2 py-1 rounded border border-gray-300 font-mono hover:bg-blue-50 hover:border-blue-400 hover:text-blue-700 cursor-pointer transition-all active:scale-95"
+                title={`Click to highlight residue ${residueNumber} in 3D viewer`}
+              >
+                {name}{residueNumber}
+              </button>
+            );
+          })}
           {pocket.residues.length > 15 && (
             <span className="text-xs opacity-50 px-2 py-1">
               +{pocket.residues.length - 15} more
