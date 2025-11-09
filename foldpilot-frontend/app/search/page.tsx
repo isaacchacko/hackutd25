@@ -3,14 +3,13 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Loader2, Dna, Sparkles, ArrowLeft } from 'lucide-react';
-import { analyzeProtein } from '@/lib/api';
+import { Loader2, Dna, Sparkles } from 'lucide-react';
+import { analyzeProteinStreaming, ProgressUpdate } from '@/lib/api';
 import { ProteinAnalysisResult } from '@/types';
 import AgentProgress from '@/components/AgentProgress';
 import ResultsPanel from '@/components/ResultsPanel';
 import QueryMarquee from '@/components/QueryMarquee';
 import { exampleQueries } from '@/lib/exampleQueries';
-import ProteinViewer from '@/components/ProteinViewer';
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -19,7 +18,10 @@ function SearchContent() {
   const [results, setResults] = useState<ProteinAnalysisResult | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [agentStep, setAgentStep] = useState<number>(0);
+  
+  // Real-time progress state
+  const [currentStep, setCurrentStep] = useState<string>('planning');
+  const [stepMessage, setStepMessage] = useState<string>('');
 
   // Handle query parameter from landing page
   useEffect(() => {
@@ -36,19 +38,23 @@ function SearchContent() {
     setLoading(true);
     setError(null);
     setResults(null);
-    setAgentStep(0);
+    setCurrentStep('planning');
+    setStepMessage('');
 
     try {
-      // Simulate agent progress
-      const progressInterval = setInterval(() => {
-        setAgentStep(prev => Math.min(prev + 1, 4));
-      }, 1500);
+      // Use streaming API with real-time progress callbacks
+      const data = await analyzeProteinStreaming(
+        query,
+        (update: ProgressUpdate) => {
+          console.log('📊 Progress update:', update);
+          setCurrentStep(update.step);
+          setStepMessage(update.message);
+        }
+      );
 
-      // ✅ Binding sites are always enabled (no parameter needed - handled in api.ts)
-      const data = await analyzeProtein(query);
-
-      clearInterval(progressInterval);
-      setAgentStep(4);
+      console.log('✅ Final result:', data);
+      console.log('🎯 Binding sites:', data.binding_sites);
+      
       setResults(data);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
@@ -64,7 +70,8 @@ function SearchContent() {
     setSubmittedQuery('');
     setResults(null);
     setError(null);
-    setAgentStep(0);
+    setCurrentStep('planning');
+    setStepMessage('');
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -91,7 +98,7 @@ function SearchContent() {
               </div>
 
               <p className="text-xl text-black/70" style={{ fontFamily: 'var(--font-instrument-serif)' }}>
-                AI-powered protein analysis with drug binding site detection
+                AI-powered protein analysis with real-time drug binding detection
               </p>
             </div>
             <Link
@@ -118,9 +125,8 @@ function SearchContent() {
             <div className="flex items-center justify-between mt-4">
               <div className="flex items-center gap-4">
                 <p className="text-sm text-gray-600">Press Ctrl+Enter to analyze</p>
-                {/* ✅ Info badge showing binding sites are included */}
                 <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
-                  🎯 Includes drug binding site analysis
+                  🎯 Real-time drug binding site analysis
                 </span>
               </div>
 
@@ -153,8 +159,13 @@ function SearchContent() {
           </div>
         )}
 
-        {/* Agent Progress */}
-        {loading && <AgentProgress step={agentStep} />}
+        {/* Real-time Agent Progress */}
+        {loading && (
+          <AgentProgress 
+            currentStep={currentStep} 
+            stepMessage={stepMessage}
+          />
+        )}
 
         {/* Error */}
         {error && (
@@ -163,26 +174,16 @@ function SearchContent() {
           </div>
         )}
 
-       {/* Results */}
-{results && (
-  <>
-    <ResultsPanel
-      results={results}
-      query={submittedQuery}
-      onAskAnother={handleAskAnother}
-    />
-    
-    {/* Only show viewer if we have a valid UniProt ID */}
-    {results.uniprot_id && results.uniprot_id !== "N/A" && (
-      <div className="mt-8">
-        <ProteinViewer uniprotId={results.uniprot_id} />
-      </div>
-    )}
-  </>
-)}
-
-
-
+        {/* Results */}
+        {results && (
+          <div className="animate-fade-in">
+            <ResultsPanel
+              results={results}
+              query={submittedQuery}
+              onAskAnother={handleAskAnother}
+            />
+          </div>
+        )}
       </div>
     </main>
   );
