@@ -304,7 +304,7 @@ async def analyze_protein_stream(request: AnalysisRequest):
                 yield send_progress("literature", "No papers found")
             
             # Step 5: Synthesis
-            yield send_progress("synthesis", "Generating AI analysis with Claude...")
+            yield send_progress("synthesis", "Generating AI analysis with NVIDIA Nemotron...")
             await asyncio.sleep(0.1)
             
             synthesis = synthesize_results(entities, structure_data, literature_data, binding_sites)
