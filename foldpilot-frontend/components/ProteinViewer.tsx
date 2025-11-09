@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { Dna, ExternalLink, AlertCircle } from 'lucide-react';
 
 interface ProteinViewerProps {
   uniprotId?: string;
@@ -17,7 +18,6 @@ const ProteinViewer = ({ uniprotId = "P04637" }: ProteinViewerProps) => {
     let mounted = true;
 
     const initViewer = async () => {
-      // Prevent multiple simultaneous initializations (fixes React.StrictMode double-render)
       if (isInitializingRef.current) {
         console.log('Already initializing, skipping...');
         return;
@@ -28,7 +28,6 @@ const ProteinViewer = ({ uniprotId = "P04637" }: ProteinViewerProps) => {
         setLoading(true);
         setError(null);
 
-        // Cleanup previous instance
         if (pluginRef.current) {
           console.log('Disposing previous plugin instance');
           try {
@@ -41,7 +40,6 @@ const ProteinViewer = ({ uniprotId = "P04637" }: ProteinViewerProps) => {
 
         if (!parentRef.current) return;
 
-        // Completely clear the container (fixes createRoot() error)
         while (parentRef.current.firstChild) {
           parentRef.current.removeChild(parentRef.current.firstChild);
         }
@@ -49,14 +47,12 @@ const ProteinViewer = ({ uniprotId = "P04637" }: ProteinViewerProps) => {
         const cleanUniprotId = uniprotId.split('-')[0];
         console.log(`Loading structure for: ${cleanUniprotId}`);
 
-        // Import Mol* modules
         const { createPluginUI } = await import('molstar/lib/mol-plugin-ui');
         const { renderReact18 } = await import('molstar/lib/mol-plugin-ui/react18');
         const { DefaultPluginUISpec } = await import('molstar/lib/mol-plugin-ui/spec');
 
         if (!mounted || !parentRef.current) return;
 
-        // Create Mol* plugin
         const plugin = await createPluginUI({
           target: parentRef.current,
           render: renderReact18,
@@ -68,6 +64,10 @@ const ProteinViewer = ({ uniprotId = "P04637" }: ProteinViewerProps) => {
                 showControls: true,
               },
             },
+            components: {
+              ...DefaultPluginUISpec().components,
+              remoteState: 'none',
+            },
           },
         });
 
@@ -78,9 +78,7 @@ const ProteinViewer = ({ uniprotId = "P04637" }: ProteinViewerProps) => {
 
         pluginRef.current = plugin;
 
-        // Structure sources - PDB format prioritized for reliability
         const structureSources = [
-          // AlphaFold PDB files (v8 down to v2 - tries latest first)
           { url: `https://alphafold.ebi.ac.uk/files/AF-${cleanUniprotId}-F1-model_v8.pdb`, format: 'pdb' as const, isBinary: false },
           { url: `https://alphafold.ebi.ac.uk/files/AF-${cleanUniprotId}-F1-model_v7.pdb`, format: 'pdb' as const, isBinary: false },
           { url: `https://alphafold.ebi.ac.uk/files/AF-${cleanUniprotId}-F1-model_v6.pdb`, format: 'pdb' as const, isBinary: false },
@@ -89,7 +87,6 @@ const ProteinViewer = ({ uniprotId = "P04637" }: ProteinViewerProps) => {
           { url: `https://alphafold.ebi.ac.uk/files/AF-${cleanUniprotId}-F1-model_v3.pdb`, format: 'pdb' as const, isBinary: false },
           { url: `https://alphafold.ebi.ac.uk/files/AF-${cleanUniprotId}-F1-model_v2.pdb`, format: 'pdb' as const, isBinary: false },
           
-          // Experimental structure fallbacks for specific proteins
           ...(cleanUniprotId === 'P0DTC2' ? [
             { url: 'https://files.rcsb.org/download/6VXX.pdb', format: 'pdb' as const, isBinary: false },
             { url: 'https://files.rcsb.org/download/6VYB.pdb', format: 'pdb' as const, isBinary: false },
@@ -104,7 +101,6 @@ const ProteinViewer = ({ uniprotId = "P04637" }: ProteinViewerProps) => {
         let loaded = false;
         let lastError: any = null;
 
-        // Try each structure source
         for (const source of structureSources) {
           if (!mounted) break;
 
@@ -180,51 +176,69 @@ const ProteinViewer = ({ uniprotId = "P04637" }: ProteinViewerProps) => {
   }, [uniprotId]);
 
   return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
-      <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">3D Protein Structure</h3>
-        <p className="text-sm text-gray-600 mt-1">
-          UniProt ID: <span className="font-mono font-medium">{uniprotId}</span>
-          {uniprotId !== uniprotId.split('-')[0] && (
-            <span className="ml-2 text-xs text-amber-600">
-              (Canonical form: {uniprotId.split('-')[0]})
-            </span>
-          )}
-        </p>
+    <div className="bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden animate-fade-in-up mb-8">
+      {/* Header */}
+      <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-black rounded-lg">
+            <Dna className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h3 className="text-xl font-semibold text-black" style={{ fontFamily: 'var(--font-instrument-serif)' }}>
+              3D Protein Structure
+            </h3>
+            <p className="text-sm text-gray-600 mt-0.5">
+              UniProt ID: <span className="font-mono font-medium text-black">{uniprotId}</span>
+              {uniprotId !== uniprotId.split('-')[0] && (
+                <span className="ml-2 text-xs text-amber-600 font-medium">
+                  (Canonical: {uniprotId.split('-')[0]})
+                </span>
+              )}
+            </p>
+          </div>
+        </div>
       </div>
       
-      <div className="relative bg-gray-900">
+      {/* Viewer Container */}
+      <div className="relative bg-white molstar-container">
         {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
+          <div className="absolute inset-0 flex items-center justify-center bg-white/95 backdrop-blur-sm z-10">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-3"></div>
-              <p className="text-sm text-gray-600">Loading 3D structure...</p>
+              <div className="inline-block relative mb-4">
+                <div className="w-12 h-12 border-4 border-gray-200 border-t-black rounded-full animate-spin"></div>
+              </div>
+              <p className="text-sm text-gray-600 font-medium">Loading 3D structure...</p>
             </div>
           </div>
         )}
         
         {error && (
-          <div className="absolute inset-0 flex items-center justify-center bg-red-50 z-10 p-4">
+          <div className="absolute inset-0 flex items-center justify-center bg-white z-10 p-8">
             <div className="text-center max-w-md">
-              <p className="text-red-800 font-medium mb-2">⚠️ Structure Load Failed</p>
-              <p className="text-sm text-red-600 mb-3">{error}</p>
-              <div className="text-xs text-gray-600 space-y-2">
-                <p className="font-medium">Try viewing directly at:</p>
+              <div className="inline-flex items-center justify-center w-14 h-14 bg-red-50 rounded-full mb-4">
+                <AlertCircle className="w-7 h-7 text-red-600" />
+              </div>
+              <h4 className="text-black font-bold text-lg mb-2">Structure Load Failed</h4>
+              <p className="text-sm text-gray-600 mb-6 leading-relaxed">{error}</p>
+              
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <a 
                   href={`https://alphafold.ebi.ac.uk/entry/${uniprotId.split('-')[0]}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline block"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-black hover:bg-gray-800 text-white rounded-lg transition-all text-sm font-semibold shadow-lg transform hover:scale-105"
                 >
-                  AlphaFold Database →
+                  AlphaFold Database
+                  <ExternalLink className="w-4 h-4" />
                 </a>
                 <a 
                   href={`https://www.rcsb.org/search?request=%7B%22query%22%3A%7B%22parameters%22%3A%7B%22value%22%3A%22${uniprotId.split('-')[0]}%22%7D%2C%22type%22%3A%22terminal%22%2C%22service%22%3A%22text%22%7D%2C%22return_type%22%3A%22entry%22%7D`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline block"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-50 hover:bg-gray-100 text-black border border-gray-200 rounded-lg transition-all text-sm font-semibold"
                 >
-                  RCSB PDB →
+                  RCSB PDB
+                  <ExternalLink className="w-4 h-4" />
                 </a>
               </div>
             </div>
@@ -235,12 +249,19 @@ const ProteinViewer = ({ uniprotId = "P04637" }: ProteinViewerProps) => {
           ref={parentRef}
           style={{
             width: '100%',
-            height: 600,
+            height: 400,
             minHeight: 400,
             position: 'relative',
           }}
         />
       </div>
+
+      {/* CSS to hide log panel */}
+      <style jsx>{`
+        .molstar-container :global(.msp-layout-region-log) {
+          display: none !important;
+        }
+      `}</style>
     </div>
   );
 };

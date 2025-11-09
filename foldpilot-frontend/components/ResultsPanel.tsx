@@ -3,6 +3,7 @@ import { ProteinAnalysisResult } from '@/types';
 import { ExternalLink, Download, ArrowLeft, AlertCircle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import BindingSitesPanel from './BindingSitesPanel';
+import ProteinViewer from './ProteinViewer';
 
 interface ResultsPanelProps {
   results: ProteinAnalysisResult;
@@ -90,7 +91,12 @@ export default function ResultsPanel({ results, query, onAskAnother }: ResultsPa
           )}
         </div>
 
-        {/* 🎯 BINDING SITES SECTION - Add this right after stats */}
+        {/* 🧬 3D PROTEIN VIEWER - NEW! */}
+        <div className="mb-6">
+          <ProteinViewer uniprotId={results.uniprot_id} />
+        </div>
+
+        {/* 🎯 BINDING SITES SECTION */}
         {results.binding_sites && (
           <div className="mb-6">
             <BindingSitesPanel bindingSites={results.binding_sites} />
