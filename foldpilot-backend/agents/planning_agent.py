@@ -1,24 +1,24 @@
-# agents/planning_agent.py
+# agents/planning_agent.py - Fix the p53 entry
 import re
 import logging
 
 logger = logging.getLogger(__name__)
 
-# Common protein names and their UniProt IDs (hardcoded for demo reliability)
+# Common protein names and their UniProt IDs
 PROTEIN_DATABASE = {
     "p53": {"uniprot": "P04637", "organism": "human", "full_name": "TP53"},
+    "tp53": {"uniprot": "P04637", "organism": "human", "full_name": "TP53"},
     "spike": {"uniprot": "P0DTC2", "organism": "SARS-CoV-2", "full_name": "Spike protein"},
     "hemoglobin": {"uniprot": "P69905", "organism": "human", "full_name": "Hemoglobin subunit alpha"},
     "insulin": {"uniprot": "P01308", "organism": "human", "full_name": "Insulin"},
     "egfr": {"uniprot": "P00533", "organism": "human", "full_name": "EGFR"},
     "brca1": {"uniprot": "P38398", "organism": "human", "full_name": "BRCA1"},
+    "lysozyme": {"uniprot": "P61626", "organism": "human", "full_name": "Lysozyme C"},
 }
 
 def extract_entities(query: str) -> dict:
     """
     Extract protein name, organism, mutations, and analysis type from query
-    
-    For hackathon: Using regex + lookup table instead of LLM for reliability
     """
     query_lower = query.lower()
     
@@ -36,11 +36,11 @@ def extract_entities(query: str) -> dict:
             result["protein"] = protein_info["full_name"]
             result["organism"] = protein_info["organism"]
             result["uniprot_id"] = protein_info["uniprot"]
+            logger.info(f"Matched protein: {protein_key} -> {protein_info['uniprot']}")
             break
     
-    # If no match, try to extract capitalized words (likely protein names)
+    # If no match, try to extract capitalized words
     if not result["protein"]:
-        # Look for capitalized words or common patterns
         potential_proteins = re.findall(r'\b[A-Z][A-Za-z0-9]+\b', query)
         if potential_proteins:
             result["protein"] = potential_proteins[0]

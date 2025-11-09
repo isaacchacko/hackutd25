@@ -4,6 +4,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 import logging
+from dotenv import load_dotenv
+import os
+
+# Load environment variables
+load_dotenv()
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -52,7 +57,7 @@ async def analyze_protein(request: AnalysisRequest):
     try:
         logger.info(f"Received query: {request.query}")
         
-        # Import agents (we'll create these next)
+        # Import agents
         from agents.planning_agent import extract_entities
         from agents.structure_agent import get_protein_structure
         from agents.literature_agent import search_literature
@@ -83,20 +88,22 @@ async def analyze_protein(request: AnalysisRequest):
         logger.info("Step 4: Synthesizing results")
         synthesis = synthesize_results(entities, structure_data, literature_data)
         
-        # Build response
+        # Build response - INCLUDE structure_quality
         response = AnalysisResponse(
             protein=entities["protein"],
             uniprot_id=structure_data.get("uniprot_id", "N/A"),
             organism=entities.get("organism", "human"),
-            structure_quality=structure_data.get("quality"),
+            structure=structure_data.get("structure"),  # Add this
+            structure_quality=structure_data.get("quality"),  # This should now work
             literature=literature_data,
             synthesis=synthesis
         )
         
+        logger.info("Analysis complete!")
         return response
         
     except Exception as e:
-        logger.error(f"Error during analysis: {str(e)}")
+        logger.error(f"Error during analysis: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/health")
