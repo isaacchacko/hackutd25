@@ -242,46 +242,6 @@ export default function AgentProgress({ step, currentStep, stepMessage, tools, a
           )}
         </div>
       )}
-
-      {/* Agent Grid (Compact View) */}
-      <div className={`mt-6 grid gap-3 ${agents.length === 4 ? 'grid-cols-4' : agents.length === 5 ? 'grid-cols-5' : 'grid-cols-3'}`}>
-        {agents.map((agent, index) => {
-          const Icon = agent.icon;
-          const isActive = currentIndex === index;
-          const isComplete = currentIndex > index;
-
-          return (
-            <div
-              key={agent.id}
-              className={`
-                p-3 rounded-lg border-2 transition-all duration-300 text-center
-                ${isActive ? 'border-black bg-white shadow-md scale-105' : ''}
-                ${isComplete ? 'border-green-600 bg-green-50' : ''}
-                ${!isActive && !isComplete ? 'border-gray-300 bg-gray-50 opacity-50' : ''}
-              `}
-            >
-              <Icon className={`
-                w-5 h-5 mx-auto mb-1 transition-all duration-300
-                ${isActive ? 'text-black animate-pulse' : ''}
-                ${isComplete ? 'text-green-600' : 'text-gray-400'}
-              `} />
-              <p className={`
-                text-xs font-semibold transition-all duration-300
-                ${isActive ? 'text-black' : ''}
-                ${isComplete ? 'text-green-600' : 'text-gray-500'}
-              `}>
-                {agent.name}
-              </p>
-              {isComplete && (
-                <p className="text-[10px] text-green-600 font-medium mt-1">✓ Done</p>
-              )}
-              {isActive && (
-                <p className="text-[10px] text-black font-medium mt-1 animate-pulse">● Active</p>
-              )}
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 }
