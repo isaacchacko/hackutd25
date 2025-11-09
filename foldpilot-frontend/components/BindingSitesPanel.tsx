@@ -24,8 +24,8 @@ export default function BindingSitesPanel({ bindingSites }: BindingSitesPanelPro
     );
   }
 
-  const displayedPockets = isExpanded 
-    ? bindingSites.top_pockets 
+  const displayedPockets = isExpanded
+    ? bindingSites.top_pockets
     : bindingSites.top_pockets.slice(0, 1);
   const remainingCount = isExpanded ? 0 : bindingSites.top_pockets.length - 1;
 
@@ -134,7 +134,7 @@ function PocketCard({ pocket, rank }: PocketCardProps) {
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-3 gap-3 mb-3">
+      <div className="grid grid-cols-2 gap-3 mb-3">
         <div className="bg-white/80 rounded p-2 border border-gray-200">
           <p className="text-xs text-gray-600 mb-1">Volume</p>
           <p className="font-semibold text-black">{pocket.volume.toFixed(0)} Ų</p>
@@ -143,20 +143,6 @@ function PocketCard({ pocket, rank }: PocketCardProps) {
           <p className="text-xs text-gray-600 mb-1">Residues</p>
           <p className="font-semibold text-black">{pocket.num_residues}</p>
         </div>
-        <div className="bg-white/80 rounded p-2 border border-gray-200">
-          <p className="text-xs text-gray-600 mb-1">Confidence</p>
-          <p className={`font-semibold ${getConfidenceColor(pocket.confidence)}`}>
-            {pocket.confidence}
-          </p>
-        </div>
-      </div>
-
-      {/* Center Coordinates */}
-      <div className="flex items-center gap-2 mb-2">
-        <MapPin className="w-4 h-4 opacity-75" />
-        <p className="text-xs">
-          Center: ({pocket.center[0].toFixed(1)}, {pocket.center[1].toFixed(1)}, {pocket.center[2].toFixed(1)})
-        </p>
       </div>
 
       {/* Residues Preview */}

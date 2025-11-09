@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { Dna, Sparkles, Brain, BookOpen, FileText, ArrowRight, Zap } from 'lucide-react';
 import QueryMarquee from '@/components/QueryMarquee';
-import MolstarViewer from '@/components/MolstarViewer';
 import { exampleQueries } from '@/lib/exampleQueries';
 
 
@@ -70,11 +69,6 @@ export default function Home() {
         <div className="mb-20 animate-fade-in-up-delay">
           <p className="text-sm text-gray-600 mb-4 text-center">Or, try these examples:</p>
           <QueryMarquee queries={exampleQueries} />
-        </div>
-
-        {/* Molstar Viewer */}
-        <div className="mb-20 animate-fade-in-up-delay">
-          <MolstarViewer />
         </div>
 
         {/* Features Section */}
