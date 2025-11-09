@@ -144,18 +144,52 @@ The configuration supports running services in different environments:
 
 ## Troubleshooting
 
+### 404 Errors Between Services
+
+If you're getting 404 errors when the frontend tries to communicate with the backend:
+
+1. **Verify Backend URL is Correct:**
+   - Check the Railway backend service URL (should look like `https://your-service.up.railway.app`)
+   - Ensure `NEXT_PUBLIC_API_URL` in frontend service matches exactly (no trailing slash)
+   - Test the backend root endpoint: `https://your-backend-url/` should return JSON
+   - Test the API endpoint: `https://your-backend-url/api` should return available endpoints
+
+2. **Check Environment Variables:**
+   - In Railway frontend service: Verify `NEXT_PUBLIC_API_URL` is set
+   - The value should be the full backend URL without trailing slash: `https://your-backend.up.railway.app`
+   - Rebuild the frontend after changing environment variables (Railway should auto-rebuild)
+
+3. **Verify Backend Routes:**
+   - Test backend health: `curl https://your-backend-url/health`
+   - Test API root: `curl https://your-backend-url/api`
+   - Check backend logs in Railway dashboard for incoming requests
+
+4. **Common Issues:**
+   - **Trailing slash**: Ensure `NEXT_PUBLIC_API_URL` has NO trailing slash
+   - **Wrong URL**: Make sure you're using the Railway-generated URL, not localhost
+   - **HTTPS vs HTTP**: Railway uses HTTPS, ensure your URL starts with `https://`
+   - **Service not running**: Check that backend service shows as "Active" in Railway
+
+5. **Debug Steps:**
+   - Open browser console on frontend and check the logged API URL
+   - Check Network tab to see the exact URL being requested
+   - Verify the request is going to the correct backend URL
+   - Check backend logs to see if requests are arriving
+
 ### CORS Errors
 
 If you see CORS errors:
 1. Check that `FRONTEND_URL` in backend matches your frontend URL exactly
 2. Ensure `ALLOWED_ORIGINS` includes all necessary origins
 3. Check backend logs for the CORS allowed origins list
+4. Test CORS by visiting backend root: `https://your-backend-url/` - it should show CORS origins
 
 ### Connection Errors
 
-1. Verify `NEXT_PUBLIC_API_URL` is set correctly
+1. Verify `NEXT_PUBLIC_API_URL` is set correctly (no trailing slash, full HTTPS URL)
 2. Check that backend service is running and healthy
 3. Test backend health endpoint: `https://your-backend-url/health`
+4. Test API connectivity: `https://your-backend-url/api`
 
 ### Build Errors
 

@@ -1,7 +1,7 @@
 # main.py
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, Response
 from pydantic import BaseModel
 from typing import Optional, List
 import logging
@@ -29,15 +29,47 @@ frontend_url = os.getenv("FRONTEND_URL")
 if frontend_url and frontend_url not in allowed_origins:
     allowed_origins.append(frontend_url)
 
+# For development/debugging: allow all origins if needed (not recommended for production)
+# In production, ensure FRONTEND_URL is set correctly
+if os.getenv("ALLOW_ALL_ORIGINS", "false").lower() == "true":
+    allowed_origins = ["*"]
+    logger.warning("⚠️ CORS: Allowing all origins (ALLOW_ALL_ORIGINS=true)")
+
 logger.info(f"CORS allowed origins: {allowed_origins}")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=allowed_origins if "*" not in allowed_origins else ["*"],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=3600,  # Cache preflight requests for 1 hour
 )
+
+# Add middleware to log and handle CORS-related requests for debugging
+@app.middleware("http")
+async def log_cors_requests(request: Request, call_next):
+    """Log CORS-related requests for debugging and ensure OPTIONS are handled"""
+    origin = request.headers.get("origin")
+    method = request.method
+    path = request.url.path
+    
+    # Log CORS-related requests
+    if method == "OPTIONS" or origin:
+        is_allowed = origin in allowed_origins if origin and "*" not in allowed_origins else True
+        logger.info(f"🌐 CORS request: {method} {path} | Origin: {origin} | Allowed: {is_allowed}")
+    
+    response = await call_next(request)
+    
+    # Ensure OPTIONS responses have proper CORS headers
+    if method == "OPTIONS":
+        response.headers["Access-Control-Allow-Origin"] = origin or "*" if "*" in allowed_origins else (origin if origin in allowed_origins else allowed_origins[0] if allowed_origins else "*")
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, HEAD"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Max-Age"] = "3600"
+    
+    return response
 
 # Request/Response Models
 class AnalysisRequest(BaseModel):
@@ -63,7 +95,21 @@ def root():
     return {
         "status": "FoldPilot API is running",
         "version": "1.0.0",
-        "endpoints": ["/api/analyze", "/api/analyze/stream", "/api/structure/{uniprot_id}", "/health"]
+        "endpoints": ["/api/analyze", "/api/analyze/stream", "/api/structure/{uniprot_id}", "/health"],
+        "cors_origins": allowed_origins
+    }
+
+@app.get("/api")
+def api_root():
+    """API root endpoint for testing connectivity"""
+    return {
+        "message": "FoldPilot API is accessible",
+        "available_endpoints": {
+            "analyze": "/api/analyze",
+            "analyze_stream": "/api/analyze/stream",
+            "structure": "/api/structure/{uniprot_id}",
+            "health": "/health"
+        }
     }
 
 # Helper function to send SSE events
@@ -217,6 +263,18 @@ async def send_progress(step: str, message: str, data: dict = None):
 #         }
 #     )
 
+
+@app.options("/api/analyze/stream")
+async def options_analyze_stream(request: Request):
+    """Handle CORS preflight for streaming endpoint"""
+    origin = request.headers.get("origin")
+    response = Response(status_code=200)
+    response.headers["Access-Control-Allow-Origin"] = origin or "*" if "*" in allowed_origins else (origin if origin and origin in allowed_origins else allowed_origins[0] if allowed_origins else "*")
+    response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    response.headers["Access-Control-Max-Age"] = "3600"
+    return response
 
 @app.post("/api/analyze/stream")
 async def analyze_protein_stream(request: AnalysisRequest):
@@ -458,6 +516,18 @@ async def analyze_protein_stream(request: AnalysisRequest):
         }
     )
 
+
+@app.options("/api/analyze")
+async def options_analyze(request: Request):
+    """Handle CORS preflight for analyze endpoint"""
+    origin = request.headers.get("origin")
+    response = Response(status_code=200)
+    response.headers["Access-Control-Allow-Origin"] = origin or "*" if "*" in allowed_origins else (origin if origin and origin in allowed_origins else allowed_origins[0] if allowed_origins else "*")
+    response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    response.headers["Access-Control-Max-Age"] = "3600"
+    return response
 
 @app.post("/api/analyze", response_model=AnalysisResponse)
 async def analyze_protein(request: AnalysisRequest):

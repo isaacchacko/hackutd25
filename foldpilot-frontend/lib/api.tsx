@@ -2,7 +2,19 @@
 import axios, { AxiosError } from 'axios';
 import { ProteinAnalysisResult } from '@/types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// Normalize API URL - remove trailing slash to avoid double slashes
+const getApiUrl = () => {
+  const url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  return url.replace(/\/+$/, ''); // Remove trailing slashes
+};
+
+const API_URL = getApiUrl();
+
+// Always log API URL to help debug (both development and production)
+if (typeof window !== 'undefined') {
+  console.log('🔗 API URL configured:', API_URL);
+  console.log('🔗 Environment variable NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL || 'NOT SET (using default)');
+}
 
 const apiClient = axios.create({
   baseURL: API_URL,
@@ -33,8 +45,10 @@ export const analyzeProteinStreaming = async (
   onProgress?: (update: ProgressUpdate) => void
 ): Promise<ProteinAnalysisResult> => {
   return new Promise((resolve, reject) => {
-    // Construct URL with query parameters
+    // Construct URL with query parameters - ensure no double slashes
     const url = `${API_URL}/api/analyze/stream`;
+    
+    console.log('📡 Streaming request to:', url);
     
     // Use fetch for SSE since EventSource doesn't support POST
     fetch(url, {
@@ -49,7 +63,9 @@ export const analyzeProteinStreaming = async (
     })
       .then(async (response) => {
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const errorText = await response.text().catch(() => 'Unknown error');
+          console.error(`❌ HTTP error! status: ${response.status}, URL: ${url}`, errorText);
+          throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
         }
 
         const reader = response.body?.getReader();
@@ -117,7 +133,8 @@ export const analyzeProteinStreaming = async (
         }
       })
       .catch((error) => {
-        console.error('Streaming error:', error);
+        console.error('❌ Streaming error:', error);
+        console.error('Failed URL:', url);
         reject(error);
       });
   });
@@ -128,7 +145,8 @@ export const analyzeProteinStreaming = async (
  */
 export const analyzeProtein = async (query: string): Promise<ProteinAnalysisResult> => {
   try {
-    console.log('📤 Sending request:', {
+    console.log('📤 Sending request to:', `${API_URL}/api/analyze`);
+    console.log('📤 Request data:', {
       query,
       include_binding_sites: true
     });
@@ -145,7 +163,14 @@ export const analyzeProtein = async (query: string): Promise<ProteinAnalysisResu
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError<{ detail: string }>;
-      console.error('❌ API Error:', axiosError.response?.data || axiosError.message);
+      console.error('❌ API Error:', {
+        status: axiosError.response?.status,
+        statusText: axiosError.response?.statusText,
+        data: axiosError.response?.data,
+        url: axiosError.config?.url,
+        baseURL: axiosError.config?.baseURL,
+        message: axiosError.message
+      });
       throw new Error(axiosError.response?.data?.detail || axiosError.message);
     }
     console.error('❌ Unknown error:', error);
